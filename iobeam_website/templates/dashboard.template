@@ -1,0 +1,66 @@
+{% extends "base.template" %}
+<!-- 
+* Bootstrap Simple Admin Template
+* Version: 2.1
+* Author: Alexis Luna
+* Website: https://github.com/alexis-luna/bootstrap-simple-admin-template
+-->
+{% load static %}
+{% block content %}
+<div class="row">
+    <div class="col-md-12 page-header">
+        <h2 class="page-title">Dashboard</h2>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12 col-lg-12">
+        <div class="card">
+            <div class="card-header">Connected Devices</div>
+            <div class="card-body">
+                <p class="card-title"></p>
+                <table class="table table-hover" id="dataTables-example" width="100%">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Device Name</th>
+                            <th>UID</th>
+                            <th>Version</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if device_list|length > 1 %}
+                            {% for device in device_list %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{% if device.device_type == 1630 %} Beam Steerer {% elif device.device_type == 1631 %} Beam Chopper {% endif %}</td>
+                                <td>{{ device.device_uid }}</td>
+                                <td>{{ device.device_version }}</td>
+                                <td></td>
+                            </tr>
+                            {% endfor %}
+                        {% endif %}
+
+                    </tbody>
+                </table>
+
+                
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{%block jsblock %}
+<script src="{% static 'vendor/progresscircle/progresscircle.js' %}"></script>
+<script src="{% static 'vendor/rangeSlider/ion.rangeSlider.min.js' %}"></script>
+<script>
+$(".slider").ionRangeSlider({
+    min: 0,
+    max: 360,
+    from: 0
+});
+
+
+$('.circlechart').circlechart();
+</script>
+{% endblock %}

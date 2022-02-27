@@ -1,0 +1,28 @@
+{% extends "authbase.template" %}
+
+{% block content %}
+<h6 class="mb-4 text-muted">Login to your account</h6>
+<form action="{% url 'login_user' %}" method="POST">
+	{% csrf_token %}
+	
+    <div class="mb-3 text-start">
+        <label for="email" class="form-label">Email adress</label>
+        <input  name="email" type="email" class="form-control" placeholder="Enter Email" required>
+    </div>
+    <div class="mb-3 text-start">
+        <label for="password" class="form-label">Password</label>
+        <input name="password" type="password" class="form-control" placeholder="Password" required>
+    </div>
+    <div class="mb-3 text-start">
+        <div class="form-check">
+            <input class="form-check-input" name="rememberme" type="checkbox" value="1">
+            <label class="form-check-label" for="rememberme">
+                Remember me on this device
+            </label>
+        </div>
+    </div>
+    <button class="btn btn-primary shadow-2 mb-4">Login</button>
+</form>
+<p class="mb-2 text-muted">Forgot password? <a href="{% url 'password_reset' %}">Reset</a></p>
+<p class="mb-0 text-muted">Don't have account yet? <a href="{% url 'register' %}">Signup</a></p>
+{% endblock %}

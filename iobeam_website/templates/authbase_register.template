@@ -1,0 +1,35 @@
+{% extends "authbase.template" %}
+
+{% block content %}
+<h6 class="mb-4 text-muted">Create new account</h6>
+<form action="{% url 'register_user' %}" method="POST">
+	{% csrf_token %}
+    <div class="mb-3 text-start">
+        <label for="username" class="form-label">Name</label>
+        <input id="username" name="username" type="text" class="form-control" placeholder="Enter Name" required>
+    </div>
+    <div class="mb-3 text-start">
+        <label for="email" class="form-label">Email adress</label>
+        <input id="email" name="email" type="email" class="form-control" placeholder="Enter Email" required>
+    </div>
+    <div class="mb-3 text-start">
+        <label for="password" class="form-label">Password</label>
+        <input id="password" name="password" type="password" class="form-control" placeholder="Password" required>
+    </div>
+    <!-- 
+                        <div class="mb-3">
+                            <input type="password" class="form-control" placeholder="Confirm password" required>
+                        </div> 
+                        -->
+    <div class="mb-3 text-start">
+        <div class="form-check">
+            <input class="form-check-input" name="confirm" type="checkbox" value="" id="check1">
+            <label class="form-check-label" for="check1">
+                I agree to the <a href="#" tabindex="-1">terms and policy</a>.
+            </label>
+        </div>
+    </div>
+    <button class="btn btn-primary shadow-2 mb-4">Register</button>
+</form>
+<p class="mb-0 text-muted">Allready have an account? <a href="{% url 'login' %}">Log in</a></p>
+{% endblock %}
