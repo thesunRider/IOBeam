@@ -26,17 +26,25 @@
                             <th>UID</th>
                             <th>Version</th>
                             <th>Status</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% if device_list|length > 1 %}
+                        {% if device_list|length > 0 %}
                             {% for device in device_list %}
                             <tr>
                                 <td>{{ forloop.counter }}</td>
-                                <td>{% if device.device_type == 1630 %} Beam Steerer {% elif device.device_type == 1631 %} Beam Chopper {% endif %}</td>
+                                <td><a href="/device_show?device={{ device.device_uid }}" style="color:blue !important">{% if device.device_type == 1630 %} Beam Steerer {% elif device.device_type == 1631 %} Beam Chopper {% else %} Unknown {% endif %}</a></td>
                                 <td>{{ device.device_uid }}</td>
                                 <td>{{ device.device_version }}</td>
-                                <td></td>
+
+                                <td>{% if device.device_status %} Connected {% else %} Offline {% endif %}</td>
+                                <td><form action="/delete_model/" method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="device_uid" id="device_uid" value="{{ device.device_uid }}">
+                                        <button  type="submit" class="btn btn-outline-danger mb-2">Delete</button>
+                                    </form>
+                                </td>
                             </tr>
                             {% endfor %}
                         {% endif %}
@@ -51,16 +59,7 @@
 </div>
 {% endblock %}
 {%block jsblock %}
-<script src="{% static 'vendor/progresscircle/progresscircle.js' %}"></script>
-<script src="{% static 'vendor/rangeSlider/ion.rangeSlider.min.js' %}"></script>
-<script>
-$(".slider").ionRangeSlider({
-    min: 0,
-    max: 360,
-    from: 0
-});
-
-
-$('.circlechart').circlechart();
+<script type="text/javascript">
+ 
 </script>
 {% endblock %}

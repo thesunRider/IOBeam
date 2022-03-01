@@ -14,8 +14,8 @@
 {% block content %}
 <div class="row">
     <div class="col-md-12 page-header">
-        <div class="page-pretitle">Beam Steering</div>
-        <h2 class="page-title">Dashboard</h2>
+        <div class="page-pretitle">{{ device_in.device_uid }} - </div>
+        <h2 class="page-title"> {% if device_in.device_type == 1630 %} Beam Steerer {% elif device_in.device_type == 1631 %} Beam Chopper {% else %} Unknown {% endif %}</h2>
     </div>
 </div>
 <div class="row">
@@ -31,7 +31,8 @@
                     </div>
                     <div class="col-sm-5">
                         <div class="detail">
-                            <div> Status: CON</div>
+                            <div> SetPoint: 0</div>
+                            <div> Current: 0</div>
                         </div>
                     </div>
                     <div class="col-sm-11 mb-3">
@@ -43,7 +44,7 @@
                         <div class="mb-3">
                             <div class="input-group mb-3">
                                 <button class="btn btn-primary" type="button" id="button-addon1">Set Angle °</button>
-                                <input type="number" class="form-control" placeholder="">
+                                <input id="ang1" type="number" class="form-control" placeholder="" value="-20.0000" step="0.0001">
                             </div>
                         </div>
                     </div>
@@ -67,19 +68,20 @@
                     </div>
                     <div class="col-sm-5">
                         <div class="detail">
-                            <div> Status: CON</div>
+                            <div> SetPoint: 0</div>
+                            <div> Current: 0</div>
                         </div>
                     </div>
                     <div class="col-sm-11 mb-3">
                         <div class="detail">
-                            <div class="slider" id="slid1"></div>
+                            <div class="slider" id="slid2"></div>
                         </div>
                     </div>
                     <div class="col-sm-10">
                         <div class="mb-3">
                             <div class="input-group mb-3">
-                                <button class="btn btn-primary" type="button" id="button-addon1">Set Angle °</button>
-                                <input type="number" class="form-control" placeholder="">
+                                <label class="btn btn-primary" type="button" id="button-addon1">Set Angle °</label>
+                                <input id="ang2" type="number" class="form-control" placeholder="" value="-20.0000" step="0.0001">
                             </div>
                         </div>
                     </div>
@@ -100,13 +102,45 @@
 <script src="{% static 'vendor/rangeSlider/ion.rangeSlider.min.js' %}"></script>
 
 <script>
-$(".slider").ionRangeSlider({
+let device_data = "";
+
+$("#slid1").ionRangeSlider({
     min: 0,
     max: 360,
-    from: 0
+    from: 0,
+
+    onChange: function (data) {
+        $('#ang1').val(data.from);
+        }
+});
+
+$("#slid2").ionRangeSlider({
+    min: 0,
+    max: 360,
+    from: 0,
+
+    onChange: function (data) {
+        $('#ang2').val(data.from);
+    }
 });
 
 
 $('.circlechart').circlechart();
+
+
+(function poll() {
+    $.ajax({
+        url: "/polls/get_status?device=" + "{{ device_in.device_uid }}",
+        type: "GET",
+        success: function(data) {
+            device_data = JSON.parse(data['device_data']);
+        },
+        dataType: "json",
+        complete: setTimeout(function() {poll()}, 2400),
+        timeout: 2400
+    });
+})();
+
+
 </script>
 {% endblock %}

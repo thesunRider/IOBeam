@@ -14,7 +14,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Dashboard | {{ title_page }}</title>
+    <title>{{ title_page }}  | IOBeam</title>
 
     <link href="{% static 'vendor/fontawesome/css/fontawesome.min.css' %}" rel="stylesheet">
     <link href="{% static 'vendor/fontawesome/css/solid.min.css' %}" rel="stylesheet">
@@ -43,14 +43,14 @@
                 </li>
                 <li>
                     
-                    <a href="#uielementsmenu" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle no-caret-down"><i class="fas fa-layer-group"></i>{% if device_list|length > 1 %}<i class="fas fa-angle-right"></i>{% endif %}Devices</a>
+                    <a href="#uielementsmenu" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle no-caret-down"><i class="fas fa-layer-group"></i>{% if device_list|length > 0 %}<i class="fas fa-angle-right"></i>{% endif %}Devices</a>
                     
-                    {% if device_list|length > 1 %}
+                    {% if device_list|length > 0 %}
                         {% for device in device_list %}
                         <ul class="collapse list-unstyled" id="uielementsmenu">
 
                             <li>
-                                <a href="{{ device.get_deviceurl }}"><i class="fas fa-angle-right"></i>{{ device.get_devicename }}</a>
+                                <a href="/device_show?device={{ device.device_uid }}"><i class="fas fa-angle-right"></i>Dev {{ forloop.counter }} ({% if device.device_type == 1630 %} Beam Steerer {% elif device.device_type == 1631 %} Beam Chopper {% else %} Unknown {% endif %})</a>
                             </li>
                         </ul>
                         {% endfor %}
@@ -106,6 +106,11 @@
     <script src="{% static 'vendor/chartsjs/Chart.min.js' %}"></script>
     <script src="{% static 'js/dashboard-charts.js' %}"></script>
     <script src="{% static 'js/script.js' %}"></script>
+
+    <!-- Update the devices connected here -->
+    <script type="text/javascript">
+        $()
+    </script>
 
     {% block jsblock %}{% endblock %}
 

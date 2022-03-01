@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'authentication',
     'home',
+    'device_show',
+    'polls'
 ]
 
 MIDDLEWARE = [
@@ -133,3 +135,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/auth/login'
 
 AUTHENTICATION_BACKENDS = ('authentication.emailpass.EmailBackend',)
+
+#ASGI_APPLICATION = "iobeam_website.asgi.application"

@@ -26,8 +26,10 @@ handler500 = 'home.views.server_error'
 
 
 urlpatterns = [
-	path('/', include('home.urls')),
+	path('', include('home.urls')),
 	path('dashboard/', include('home.urls')),
 	path('site-admin/', admin.site.urls),
 	path('auth/', include('authentication.urls')),
+	path('polls/', include('polls.urls')),
+	path('device_show/',include('device_show.urls'))
 ]
