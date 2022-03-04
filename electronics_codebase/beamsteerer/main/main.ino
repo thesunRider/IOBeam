@@ -7,7 +7,7 @@
 #include <rotary.h>                 // rotary handler
 
 
-//initialize pins
+//initialize pin
 const int rs = 11, en = 12, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
 const int back = 9,PINA = A0,PINB = A1,PUSHB = A2;
 const int PINA2 = 6,PINB2 = 7,PUSHB2 = A3;
