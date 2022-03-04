@@ -1,0 +1,90 @@
+
+
+
+<div class="col-md-12 col-lg-12">
+<div class="card">
+<div class="card-header">Scripts</div>
+<div class="card-body">
+
+<table class="table table-hover" id="dataTables-example" width="100%">
+<thead>
+<tr>
+<th>Script Name</th>
+<th>Actions</th>
+
+</tr>
+</thead>
+<tbody>
+<tr>
+
+<td>United States</td>
+
+<td><div class="d-flex justify-content-around">
+                                        
+    <form action="/run_script/" method="post">
+        <input type="hidden" name="device_uid" id="device_uid" value="{{ device.device_uid }}">
+        <button  type="submit" class="btn btn-outline-success mb-2">Run</button>
+    </form>
+    <form action="/edit_script/" method="post">
+        <input type="hidden" name="device_uid" id="device_uid" value="{{ device.device_uid }}">
+        <button  type="submit" class="btn btn-outline-primary mb-2">Edit</button>
+    </form>
+    <form action="/delete_script/" method="post">
+        <input type="hidden" name="device_uid" id="device_uid" value="{{ device.device_uid }}">
+        <button  type="submit" class="btn btn-outline-danger mb-2">Delete</button>
+    </form>
+</div></td>
+</tr>
+<tr>
+
+<td>Curaçao</td>
+<td>Sinaai-Waas</td>
+</tr>
+<tr>
+
+<td>Netherlands</td>
+<td>Baileux</td>
+</tr>
+<tr>
+<td>Korea, South</td>
+<td>Overland Park</td>
+</tr>
+<tr>
+
+<td>Malawi</td>
+<td>Feldkirchen in Kärnten</td>
+</tr>
+<tr>
+
+<td>Chile</td>
+<td>Gloucester</td>
+</tr>
+<tr>
+
+<td>Columbia</td>
+<td>Nigger</td>
+</tr>
+<tr>
+
+<td>Ecuador</td>
+<td>Holster</td>
+</tr>
+<tr>
+
+<td>Philippines</td>
+<td>Camp John</td>
+</tr>
+<tr>
+
+<td>Malaysia</td>
+<td>Glosterine</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+
+
+
