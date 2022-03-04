@@ -172,7 +172,7 @@ $('.circlechart').circlechart();
     
     $('#dataTables').DataTable({
         buttons: [
-        'copy', 'excel', 'pdf'
+        'New Script'
     ],
         responsive: true,
         pageLength: 3,
