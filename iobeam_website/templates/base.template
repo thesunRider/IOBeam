@@ -22,8 +22,9 @@
     <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
     <link href="{% static 'css/master.css' %}" rel="stylesheet">
     <link href="{% static 'vendor/flagiconcss/css/flag-icon.min.css' %}" rel="stylesheet">
-    <link href="{% static 'vendor/rangeSlider/ion.rangeSlider.min.css' %}" rel="stylesheet">
-    <link href="{% static 'vendor/progresscircle/progresscircle.css' %}" rel="stylesheet">
+
+    {% block styleblock %}
+    {% endblock %}
 
 </head>
 
@@ -103,14 +104,8 @@
                
     <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
     <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
-    <script src="{% static 'vendor/chartsjs/Chart.min.js' %}"></script>
-    <script src="{% static 'js/dashboard-charts.js' %}"></script>
     <script src="{% static 'js/script.js' %}"></script>
 
-    <!-- Update the devices connected here -->
-    <script type="text/javascript">
-        $()
-    </script>
 
     {% block jsblock %}{% endblock %}
 

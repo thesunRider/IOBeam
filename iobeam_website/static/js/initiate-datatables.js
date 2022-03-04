@@ -3,10 +3,13 @@
     'use strict';
     
     $('#dataTables-example').DataTable({
+    	buttons: [
+        'copy', 'excel', 'pdf'
+    	],
         responsive: true,
-        pageLength: 20,
-        lengthChange: false,
-        searching: true,
-        ordering: true
+        pageLength: 5,
+        lengthChange: true,
+        searching: false,
+        ordering: true,
     });
 })();

@@ -6,6 +6,14 @@
 * Website: https://github.com/alexis-luna/bootstrap-simple-admin-template
 -->
 {% load static %}
+
+{% block styleblock %}
+
+    <link href="{% static 'vendor/dataTables/buttons.dataTables.min.css' %}" rel="stylesheet">
+    <link href="{% static 'vendor/dataTables/datatables.css' %}" rel="stylesheet">
+
+{% endblock %}
+
 {% block content %}
 <div class="row">
     <div class="col-md-12 page-header">
@@ -18,7 +26,7 @@
             <div class="card-header">Connected Devices</div>
             <div class="card-body">
                 <p class="card-title"></p>
-                <table class="table table-hover" id="dataTables-example" width="100%">
+                <table class="table table-hover" id="dataTables" width="100%">
                     <thead>
                         <tr>
                             <th>No</th>
@@ -58,8 +66,29 @@
     </div>
 </div>
 {% endblock %}
+
 {%block jsblock %}
+<script src="{% static 'vendor/datatables/dataTables.buttons.min.js' %}"></script>
+<script src="{% static 'vendor/datatables/datatables.js' %}"></script>
+<script src="{% static 'vendor/chartsjs/Chart.min.js' %}"></script>
+
 <script type="text/javascript">
- 
+
+(function() {
+    'use strict';
+    
+    $('#dataTables').DataTable({
+        buttons: [
+        'copy', 'excel', 'pdf'
+    ],
+        responsive: true,
+        pageLength: 3,
+        lengthChange: false,
+        searching: true,
+        ordering: true,
+    });
+})();
+
 </script>
+
 {% endblock %}

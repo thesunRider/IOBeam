@@ -6,7 +6,7 @@
 <div class="card-header">Scripts</div>
 <div class="card-body">
 
-<table class="table table-hover" id="dataTables-example" width="100%">
+<table class="table table-hover" id="dataTables" width="100%">
 <thead>
 <tr>
 <th>Script Name</th>
