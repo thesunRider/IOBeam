@@ -4,8 +4,8 @@ void setup() {
   // put your setup code here, to run once:
   Wire.begin(4);
   Serial.begin(9600);
-  Wire.onReceive(receiveEvent); // register event
-
+  Wire.onReceive(receiveEvent); // when recieving data
+  Wire.onRequest(sendEvent);    // when sending data
 }
 
 void loop() {
@@ -16,13 +16,18 @@ void loop() {
 
 // function that executes whenever data is received from master
 // this function is registered as an event, see setup()
-void receiveEvent(int howMany)
+void receiveEvent(int numbytes)
 {
-  while (1 < Wire.available()) // loop through all but the last
+  while (Wire.available()) // loop through all but the last
   {
     char c = Wire.read(); // receive byte as a character
     Serial.print(c);         // print the character
   }
   int x = Wire.read();    // receive byte as an integer
   Serial.println(x);         // print the integer
+}
+
+void sendEvent(int numbytes) {
+
+
 }
