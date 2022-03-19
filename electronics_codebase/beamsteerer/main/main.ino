@@ -1,12 +1,19 @@
+
 /*
    Created by Suryasaradhi,Alex Shajan
 
 */
 
+
+//IMPORTS-------------------------------
 #include <LiquidCrystal.h>
 #include <rotary.h>                 // rotary handler
 #include <Wire.h>                   // i2c handler
 #include <EEPROM.h>                 // memory handler
+
+//ENDIMPORTS-------------------------------------------
+
+//defines ---------------------------------------------
 
 //initialize pin
 #define PINA A0
@@ -16,9 +23,15 @@
 #define PINB2 7
 #define PUSHB2 A3
 
+
+void about();
+void login();
+int getinput(int rotary_step);
+void showLetters(int printStart, int startLetter, char*  messagePadded);
+
 const int rs = 11, en = 12, d4 = 5, d5 = 4, d6 = 3, d7 = 2, back = 9;
 bool  initial = LOW;
-
+int scroll_letter = 0;
 
 
 //initialize prog
@@ -28,18 +41,42 @@ Rotary r = Rotary(PINA, PINB, PUSHB);        // there is no must for using inter
 Rotary s = Rotary(PINA2, PINB2, PUSHB2);
 
 int columnsLCD = 16;
-char* MenuLine[] = {" Home", " Change User", " Option 3", " Option 4", " Option 5", " Option 6", " About"};
-int MenuItems = 7;
+char *MenuLine[] = {" Home", " Network Settings", " Hardware Settings", " About"};
+int MenuItems = 4;
 int CursorLine = 0;
+
 
 char id[5];
 char pin[4];
-
-unsigned long startMillis;
-unsigned long currentMillis;
 const unsigned long period = 10000;  //the value is a number of milliseconds
 
+unsigned long start_millis;
+unsigned long saved_millis;
 
+
+//minimum step for ui of rotary encoder
+int rotary_minstep = 4;
+
+
+//counter for the rotary encoder
+int counter_rotary1 = 0;
+int counter_rotary2 = 0;
+
+bool connection_status = true;
+int angle_unit = 0; //0 - deg , 1 - rad
+
+byte wifi_connected_icon[] = {
+  B00000,
+  B01110,
+  B10001,
+  B00100,
+  B01010,
+  B00000,
+  B00100,
+  B00000
+};
+
+//enddefines-----------------------------------------------
 
 void setup ()
 {
@@ -67,28 +104,56 @@ void setup ()
 
   lcd.begin (16, 2);
   lcd.clear (); // go home
-  lcd.print ("Menu Master");
+  lcd.print ("IOBeam v1.5");
   lcd.setCursor(0, 1);
-  lcd.print("Please Select");
+  lcd.print("Beam Steeering");
+
+
+  lcd.createChar(0, wifi_connected_icon);
 
   delay(2000);
-  startMillis = millis();  //initial start time
   print_menu();
 
 
   Serial.begin(9600);
   Wire.begin();
+  start_millis = millis();
+  saved_millis = start_millis;
 }
 
 
 void loop ()
 {
-  volatile unsigned char result = r.process();
 
-  currentMillis = millis();  //get the current "time" (actually the number of milliseconds since the program started)
-  if (result) {
-    startMillis = millis();;  //wake up LCD...
-    result == DIR_CCW ? CursorLine = CursorLine - 1 : CursorLine = CursorLine + 1;
+  int inp = getinput(rotary_minstep);
+  switch (inp) {
+
+    case 0x32:
+      scroll_letter = 0;
+      CursorLine -= 1;
+      break;
+
+    case 0x34:
+      CursorLine += 1;
+      scroll_letter = 0;
+      break;
+
+    case 0x35:
+      lcd.setCursor(0, 1);  //(col, row)
+      Serial.println("butnclick");
+      selection();
+      break;
+
+    case 0x42:
+      break;
+
+    case 0x44:
+      break;
+
+
+  }
+
+  if (inp == 0x32 || inp == 0x34 ) {
     if (CursorLine < 0) {
       CursorLine = MenuItems - 1;
     }
@@ -96,16 +161,28 @@ void loop ()
       CursorLine = 0;                 // roll over to first item
     }
     print_menu();
-  } //End if result
+  }
 
-  if (r.buttonPressedReleased(25)) {
-    startMillis = millis();;     //wake up LCD...
-    lcd.setCursor(0, 0);  //(col, row)
-    lcd.print("You selected:");
-    lcd.setCursor(0, 1);  //(col, row)
-    selection();
-    // print_menu();
-  } //endif buttonPressedReleased
+  //update every 400ms
+  if (millis() - saved_millis  >= 700 ) {
+    saved_millis = millis();
+    if ((int)strlen(MenuLine[CursorLine]) - 16 > 0) {
+
+      if (scroll_letter - (int)strlen(MenuLine[CursorLine]) >= 0 )
+        scroll_letter = 0;
+
+
+      //Serial.println(strlen(MenuLine[CursorLine]));
+      scroll_letter += 1;
+      showLetters(1, scroll_letter, MenuLine[CursorLine]);
+
+
+    }
+    else {
+      scroll_letter = 0;
+    }
+  }
+
 } //End loop()
 
 /************FUNCTIONS**************/
@@ -123,6 +200,7 @@ void print_menu()
 
 void selection()
 {
+  Serial.println(CursorLine);
   switch (CursorLine) {
     case 0:
       lcd.print("   Home Page");
@@ -137,152 +215,200 @@ void selection()
       //set a flag or do something....
       break;
     case 3:
-      lcd.print("Option 4    ");
-      //set a flag or do something....
-      break;
-    case 4:
-      lcd.print("Option 5    ");
-      //set a flag or do something....
-      break;
-    case 5:
-      lcd.print("Option 6    ");
-      //set a flag or do something....
-      break;
-    case 6:
-      lcd.print("Option 7    ");
       about();
       break;
+
     default:
       break;
   } //end switch
 
-  delay(2000);
   CursorLine = 0;     // reset to start position
 } //End selection
 
 void homepage()
 {
-  float angle1 = 0, angle2 = 0;
+  double angle1 = 0.0000, angle2 = 0.0000;
   float initial_select = 0;
+  int angle_multiplier = 1;
+
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print(">angle 1: " + String(angle1 ));
+  lcd.print(">a1:");
+  lcd.print(angle1, 4);
+  angle_unit == 0 ? lcd.print((char)223) : lcd.print("r");
+
   lcd.setCursor(0, 1);
-  lcd.print(" angle 2: " + String(angle2));
+  lcd.print(" a2:");
+  lcd.print(angle2, 4);
+  angle_unit == 0 ? lcd.print((char)223) : lcd.print("r");
+
   boolean flag = true;
+  int angle_select = 0;
+
+  lcd.setCursor(15 - String(angle_multiplier).length(), 1);
+  lcd.print(String(angle_multiplier) + "x");
+
+  if (connection_status ) {
+    lcd.setCursor(15, 0);
+    lcd.write(byte(0));
+  }
+
+  if (angle_unit == 0 ) {
+    lcd.setCursor(14, 0);
+    lcd.print("d");
+  } else {
+    lcd.setCursor(14, 0);
+    lcd.print("r");
+  }
+
+
   while (flag)
   {
-    volatile unsigned char result = r.process();
-    volatile unsigned char fine = s.process();
+    int inp = getinput(rotary_minstep);
+    switch (inp) {
+      case 0x32:
+        if (angle_select == 0)
+          angle1 -= 0.1000 * angle_multiplier;
+        else if (angle_select == 1)
+          angle2 -= 0.1000 * angle_multiplier;
 
-    if (result)
-    {
-      startMillis = millis();;  //wake up LCD...
-      if (initial_select == 0)
-      {
-        result == DIR_CCW ? angle1 = angle1 - .5 : angle1 = angle1 + .5;
-      }
-      else
-      {
-        result == DIR_CCW ? angle2 = angle2 - .5 : angle2 = angle2 + .5;
-      }
+        break;
 
-      if (angle1 < 0)
-        angle1 = angle1 + 360;
-      if (angle1 > 360)
-        angle1 = angle1 - 360;
-      if (angle2 < 0)
-        angle1 = angle1 + 360;
-      if (angle2 > 360)
-        angle1 = angle1 - 360;
+      case 0x34:
+        if (angle_select == 0)
+          angle1 += 0.1000 * angle_multiplier;
+        else if (angle_select == 1)
+          angle2 += 0.1000 * angle_multiplier;
 
-      lcd.clear();
-      if (initial_select == 0)
-      {
-        lcd.setCursor(0, 0);
-        lcd.print(">Angle 1: " + String(angle1 ));
-        lcd.setCursor(0, 1);
-        lcd.print(" Angle 2: " + String(angle2));
-      }
+        break;
 
-      else
-      {
-        lcd.setCursor(0, 0);
-        lcd.print(" Angle 1: " + String(angle1));
-        lcd.setCursor(0, 1);
-        lcd.print(">Angle 2: " + String(angle2));
-      }
+      case 0x42:
+        if (angle_select == 0)
+          angle1 -= 0.0001 * angle_multiplier;
+        else if (angle_select == 1)
+          angle2 -= 0.0001 * angle_multiplier;
 
-    }
+        break;
 
-    if (fine)
-    {
-      startMillis = millis();;
-      if (initial_select == 0)
-      {
-        fine == DIR_CCW ? angle1 = angle1 - 0.001 : angle1 = angle1 + 0.001;
-      }
-      else
-      {
-        fine == DIR_CCW ? angle2 = angle2 - 0.001 : angle2 = angle2 + 0.001;
-      }
+      case 0x44:
+        if (angle_select == 0)
+          angle1 += 0.0001 * angle_multiplier;
+        else if (angle_select == 1)
+          angle2 += 0.0001 * angle_multiplier;
 
-      if (angle1 < 0)
-        angle1 = angle1 + 360;
-      if (angle1 > 360)
-        angle1 = angle1 - 360;
-      if (angle2 < 0)
-        angle1 = angle1 + 360;
-      if (angle2 > 360)
-        angle1 = angle1 - 360;
+        break;
 
-      lcd.clear();
-      if (initial_select == 0)
-      {
-        lcd.setCursor(0, 0);
-        lcd.print(">Angle 1: " + String(angle1 ));
-        lcd.setCursor(0, 1);
-        lcd.print(" Angle 2: " + String(angle2));
-      }
-
-      else
-      {
-        lcd.setCursor(0, 0);
-        lcd.print(" Angle 1: " + String(angle1));
-        lcd.setCursor(0, 1);
-        lcd.print(">Angle 2: " + String(angle2));
-      }
+      //if button pressed change angle
+      case 0x35:
+        angle_select += 1;
+        if (angle_select >= 4)
+          angle_select = 0;
+        break;
 
     }
 
-    if (r.buttonPressedReleased(25))
-    {
-      startMillis = millis();;
-      if (initial_select == 0)
-        initial_select = 1;
-      else
-        initial_select = 0;
+    if (inp == 0x32 || inp == 0x34 || inp == 0x42 || inp == 0x44) {
 
-      lcd.clear();
-
-      if (initial_select == 0)
-      {
+      if (angle_select == 1) {
         lcd.setCursor(0, 0);
-        lcd.print(">Angle 1: " + String(angle1 ));
+        lcd.print(" ");
         lcd.setCursor(0, 1);
-        lcd.print(" Angle 2: " + String(angle2));
+        lcd.print(">");
+      } else if (angle_select == 0) {
+        lcd.setCursor(0, 0);
+        lcd.print(">");
+        lcd.setCursor(0, 1);
+        lcd.print(" ");
+
       }
-      else
-      {
+      if (connection_status ) {
+        lcd.setCursor(15, 0);
+        lcd.write(byte(0));
+      }
+
+      if (angle_select == 2) { //change multiplier
+        angle_multiplier *= 10;
+
+        if (angle_multiplier == 100)
+          angle_multiplier = 50;
+        else if (angle_multiplier > 100)
+          angle_multiplier = 1;
+
+
+
+
+        lcd.setCursor(12, 1);
+        lcd.print("   "); //clear the screen buffer of 100x
+
+        lcd.setCursor(15 - String(angle_multiplier).length(), 1);
+        lcd.print(String(angle_multiplier) + "x");
+        lcd.cursor();
+
+      } else if (angle_select == 3) { //change unit
+        lcd.setCursor(14, 0);
+        ++angle_unit;
+        if (angle_unit > 1)
+          angle_unit = 0;
+
+      }
+
+      lcd.setCursor(14, 0);
+      angle_unit == 0 ? lcd.print("d") : lcd.print("r");
+
+
+      lcd.setCursor(1, 0);
+      lcd.print("a1:");
+      lcd.print(angle1, 4);
+      angle_unit == 0 ? lcd.print((char)223) : lcd.print("r");
+      lcd.print(" ");
+
+      lcd.setCursor(1, 1);
+      lcd.print("a2:");
+      lcd.print(angle2, 4);
+      angle_unit == 0 ? lcd.print((char)223) : lcd.print("r");
+      lcd.print(" ");
+
+
+    }
+
+    if ( inp == 0x35) {
+      if (angle_select == 1) {
         lcd.setCursor(0, 0);
-        lcd.print(" Angle 1: " + String(angle1));
+        lcd.print(" ");
         lcd.setCursor(0, 1);
-        lcd.print(">Angle 2: " + String(angle2));
+        lcd.print(">");
+      } else if (angle_select == 0) {
+        lcd.noCursor();
+        lcd.setCursor(0, 0);
+        lcd.print(">");
+        lcd.setCursor(0, 1);
+        lcd.print(" ");
+
+      } else if (angle_select == 2) { //change multiplier
+        lcd.setCursor(0, 0);
+        lcd.print(" ");
+        lcd.setCursor(0, 1);
+        lcd.print(" ");
+        lcd.setCursor(15 - String(angle_multiplier).length(), 1);
+        lcd.cursor();
+
+      } else if (angle_select == 3) { //change unit
+        lcd.setCursor(14, 0);
       }
     }
-    if (buttonpressed())
-      break;
+
+    if (angle_select == 2) { //change multiplier
+      lcd.setCursor(15 - String(angle_multiplier).length(), 1);
+      lcd.cursor();
+
+    } else if (angle_select == 3) { //change unit
+      lcd.setCursor(14, 0);
+    }
+
   }
+
+
+
 }
 
 void about()
@@ -300,6 +426,12 @@ void about()
   lcd.setCursor(0, 1);
   lcd.print("B180649EP");
   delay(2000);
+  lcd.clear();
+  lcd.print("IOBeam v1.5");
+  lcd.setCursor(0, 1);
+  lcd.print("Beam Steering");
+  delay(2000);
+  print_menu();
 }
 
 void login()
@@ -313,6 +445,60 @@ void login()
   password();
 }
 
+
+// 0x31 - movement in rotary 1
+// 0x32 - ccw minstep rotary 1
+// 0x34 - acw minstep rotary 1
+// 0x35 - butn pressd rotary 1
+// 0x41 - movement in rotary 2
+// 0x42 - ccw min step rotary 2
+// 0x44 - acw minstep rotary 2
+// 0x45 - butn pressd rotary 2
+// 0x00 - none
+int getinput(int rotary_step) {
+  volatile unsigned char result = r.process();
+  volatile unsigned char result2 = s.process();
+
+  if (result) {
+    result == DIR_CCW ? counter_rotary1++ : counter_rotary1--;
+    if (counter_rotary1 >= rotary_step) {
+      counter_rotary1 = 0;
+      return 0x32;
+    }
+    if ( counter_rotary1 <= -1 * rotary_step ) {
+      counter_rotary1 = 0;
+      return 0x34;
+    }
+    return 0x31;
+  }
+
+  if (result2) {
+    result2 == DIR_CCW ? counter_rotary2++ : counter_rotary2--;
+    if (counter_rotary2 >= rotary_step) {
+      counter_rotary2 = 0;
+      return 0x42;
+    }
+    if ( counter_rotary2 <= -1 * rotary_step ) {
+      counter_rotary2 = 0;
+      return 0x44;
+    }
+
+    return 0x41;
+  }
+
+  if (r.buttonPressedReleased(25)) {
+    return 0x35;
+  }
+  if (s.buttonPressedReleased(25)) {
+    return 0x45;
+  }
+
+
+
+  return 0;
+
+}
+
 bool buttonpressed()
 {
   if (digitalRead(back) != initial)
@@ -322,6 +508,19 @@ bool buttonpressed()
       return true;
   }
   return false;
+}
+
+
+void showLetters(int printStart, int startLetter, char*  messagePadded)
+{
+  lcd.setCursor(printStart, 1);
+  for (int letter = startLetter; letter <= (int) strlen(messagePadded) - 1; letter++) // Print only 16 chars in Line #2 starting 'startLetter'
+  {
+    lcd.print(messagePadded[letter]);
+  }
+  lcd.print("                    ");
+  lcd.setCursor(columnsLCD - 1, 1);
+  lcd.print(">");
 }
 
 void UserId()
