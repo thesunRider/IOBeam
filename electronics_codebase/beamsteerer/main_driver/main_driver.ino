@@ -1,8 +1,11 @@
 #include <Wire.h>
 
+
+#define SLAVE_DRIVER 4 
 void setup() {
   // put your setup code here, to run once:
-  Wire.begin(4);
+  Wire.begin(SLAVE_DRIVER);
+  
   Serial.begin(9600);
   Wire.onReceive(receiveEvent); // when recieving data
   Wire.onRequest(sendEvent);    // when sending data

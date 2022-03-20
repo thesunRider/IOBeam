@@ -22,6 +22,7 @@
 #define PINA2 6
 #define PINB2 7
 #define PUSHB2 A3
+#define SLAVE_DRIVER 4 
 
 
 void about();
