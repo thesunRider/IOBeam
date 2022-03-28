@@ -22,7 +22,7 @@
 #define PINA2 6
 #define PINB2 7
 #define PUSHB2 A3
-#define SLAVE_DRIVER 4 
+#define SLAVE_DRIVER 4
 
 
 void about();
@@ -63,8 +63,14 @@ int rotary_minstep = 4;
 int counter_rotary1 = 0;
 int counter_rotary2 = 0;
 
+
+
+//settings
 bool connection_status = true;
 int angle_unit = 0; //0 - deg , 1 - rad
+float angle1 = 45.0000, angle2 = 45.0000;
+float initial_select = 0;
+int angle_multiplier = 1;
 
 byte wifi_connected_icon[] = {
   B00000,
@@ -228,9 +234,6 @@ void selection()
 
 void homepage()
 {
-  double angle1 = 0.0000, angle2 = 0.0000;
-  float initial_select = 0;
-  int angle_multiplier = 1;
 
   lcd.clear();
   lcd.setCursor(0, 0);
@@ -268,38 +271,46 @@ void homepage()
     int inp = getinput(rotary_minstep);
     switch (inp) {
       case 0x32:
-        if (angle_select == 0)
+        if (angle_select == 0) {
           angle1 -= 0.1000 * angle_multiplier;
-        else if (angle_select == 1)
+        }
+        else if (angle_select == 1) {
           angle2 -= 0.1000 * angle_multiplier;
+        }
 
         break;
 
       case 0x34:
-        if (angle_select == 0)
+        if (angle_select == 0) {
           angle1 += 0.1000 * angle_multiplier;
-        else if (angle_select == 1)
+        }
+        else if (angle_select == 1) {
           angle2 += 0.1000 * angle_multiplier;
+        }
 
         break;
 
       case 0x42:
-        if (angle_select == 0)
+        if (angle_select == 0) {
           angle1 -= 0.0001 * angle_multiplier;
-        else if (angle_select == 1)
+        }
+        else if (angle_select == 1) {
           angle2 -= 0.0001 * angle_multiplier;
+        }
 
         break;
 
       case 0x44:
-        if (angle_select == 0)
+        if (angle_select == 0) {
           angle1 += 0.0001 * angle_multiplier;
-        else if (angle_select == 1)
+        }
+        else if (angle_select == 1) {
           angle2 += 0.0001 * angle_multiplier;
+        }
 
         break;
 
-      //if button pressed change angle
+      //if button pressed tab through the options
       case 0x35:
         angle_select += 1;
         if (angle_select >= 4)
@@ -315,16 +326,35 @@ void homepage()
         lcd.print(" ");
         lcd.setCursor(0, 1);
         lcd.print(">");
+
+        if (angle2 < 0)
+          angle2 = 90;
+
+        if (angle2 > 90)
+          angle2 = 0;
+
+
+        stepper_move(angle2, 1);
+
       } else if (angle_select == 0) {
         lcd.setCursor(0, 0);
         lcd.print(">");
         lcd.setCursor(0, 1);
         lcd.print(" ");
 
+        if (angle1 < 0)
+          angle1 = 90;
+
+        if (angle1 > 90)
+          angle1 = 0;
+
+        stepper_move(angle1, 0);
+
       }
       if (connection_status ) {
         lcd.setCursor(15, 0);
         lcd.write(byte(0));
+
       }
 
       if (angle_select == 2) { //change multiplier
@@ -334,9 +364,6 @@ void homepage()
           angle_multiplier = 50;
         else if (angle_multiplier > 100)
           angle_multiplier = 1;
-
-
-
 
         lcd.setCursor(12, 1);
         lcd.print("   "); //clear the screen buffer of 100x
@@ -426,6 +453,11 @@ void about()
   lcd.print("Alex Shajan");
   lcd.setCursor(0, 1);
   lcd.print("B180649EP");
+  delay(2000);
+  lcd.clear();
+  lcd.print("Project guide:");
+  lcd.setCursor(0, 1);
+  lcd.print("Dr.SubramanyanNV");
   delay(2000);
   lcd.clear();
   lcd.print("IOBeam v1.5");
@@ -531,5 +563,36 @@ void UserId()
 
 void password()
 {
+
+}
+
+
+void stepper_move(float stepper_angle, int stepper_index) {
+
+  char sendstring[11];
+
+  switch (stepper_index) {
+    case 0x1:
+      dtostrf(stepper_angle, 10, 4, sendstring);
+      sendstring[0] = '1';
+      sendstring[1] = '1';
+      sendstring[2] = 'x';
+      Wire.write(sendstring);
+      break;
+
+    case 0x2:
+      dtostrf(stepper_angle, 10, 4, sendstring);
+      sendstring[0] = '1';
+      sendstring[1] = '2';
+      sendstring[2] = 'x';
+      Wire.write(sendstring);
+      break;
+
+    case 0x3: //home the steppers
+
+      break;
+
+
+  }
 
 }
