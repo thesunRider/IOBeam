@@ -1,5 +1,18 @@
 
-
+<style>
+    p {
+        margin-top: 5px;
+        margin-bottom: 0px;
+        margin-right: 5px;
+        margin-left: 5px;
+      }
+      form   {
+          margin-top: 5px;
+          margin-bottom: 5px;
+          margin-right: 5px;
+          margin-left: 5px;
+        }
+</style>
 
 <div class="col-md-12 col-lg-12">
 <div class="card">
@@ -51,8 +64,8 @@
                     {% csrf_token %}
                     {{ form.as_p }}
                     <button type="submit" class="btn btn-outline-primary"/>compile</button>
-                    </form>
-                    <input class="form-control" type="text" placeholder="Readonly input here…" readonly>
+                </form>
+                    <input class="form-control ml-1 mr-1" type="text" placeholder="Readonly input here…" readonly>
 
 
 
