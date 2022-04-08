@@ -1,6 +1,5 @@
 #include <Wire.h>
 
-
 #define SLAVE_DRIVER 4
 
 
@@ -10,7 +9,7 @@
 //   Yellow - 28BYJ48 pin 3 <-- 2019 <-- arduino pin 10
 //   Orange - 28BYJ48 pin 4 <-- 2019 <-- arduino pin 11
 //   Red    - 28BYJ48 pin 5 <-- vcc
-
+ 
 #define motor2_B 2
 #define motor2_P 3
 #define motor2_Y 4
@@ -28,7 +27,7 @@ byte patterns[8] = {
   0b00000001,
   0b00001001,
 };
-
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
 
 void runsingle_step(long motorDelay = motorDelay) {
   for (int i = 0; i < 8; i++) {
@@ -80,13 +79,13 @@ void receiveEvent(int numbytes) {
 
   Serial.print(command_in);
   Serial.print(":");
-  Serial.println(command_value);
+  Serial.println(command_value,4);
 
   parsecommand(command_in, command_value);
 
 }
 
-void requestEvent(int numbytes) {
+void requestEvent() {
 
 
 }

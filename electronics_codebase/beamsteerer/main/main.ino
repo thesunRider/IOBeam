@@ -1,6 +1,5 @@
-
 /*
-   Created by Suryasaradhi,Alex Shajan
+  Created by Suryasaradhi,Alex Shajan
 
 */
 
@@ -22,6 +21,7 @@
 #define PINA2 6
 #define PINB2 7
 #define PUSHB2 A3
+
 #define SLAVE_DRIVER 4
 
 
@@ -566,26 +566,36 @@ void password()
 
 }
 
+void sendwire(char *str) {
+  Serial.println();
+  Serial.print("sent from main>> ");
+  Serial.print(str);
+  Serial.println();
+  
+  Wire.beginTransmission(SLAVE_DRIVER); // transmit to device #4
+  Wire.write(str);
+  Wire.endTransmission();
+}
 
 void stepper_move(float stepper_angle, int stepper_index) {
 
   char sendstring[11];
 
   switch (stepper_index) {
-    case 0x1:
+    case 0x0:
       dtostrf(stepper_angle, 10, 4, sendstring);
       sendstring[0] = '1';
       sendstring[1] = '1';
       sendstring[2] = 'x';
-      Wire.write(sendstring);
+      sendwire(sendstring);
       break;
 
-    case 0x2:
+    case 0x1:
       dtostrf(stepper_angle, 10, 4, sendstring);
       sendstring[0] = '1';
       sendstring[1] = '2';
       sendstring[2] = 'x';
-      Wire.write(sendstring);
+      sendwire(sendstring);
       break;
 
     case 0x3: //home the steppers

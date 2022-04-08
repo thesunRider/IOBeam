@@ -17,7 +17,7 @@ byte patterns[8] = {
 };
 
 
-void runsingle_step(long motorDelay = motorDelay);
+void runsingle_step(long motorDelay);
 
 void setup() {
   // put your setup code here, to run once:
@@ -32,11 +32,11 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  runsingle_step();
+  runsingle_step(motorDelay);
 }
 
 
-void runsingle_step(long motorDelay = motorDelay) {
+void runsingle_step(long motorDelay) {
   for (int i = 0; i < 8; i++) {
     digitalWrite(motor2_B, bitRead(patterns[i], 0));
     digitalWrite(motor2_P, bitRead(patterns[i], 1));

@@ -3,7 +3,8 @@ from django.contrib.auth.models import User
 import uuid
 
 # Create your models here.
-#1630 - Beam Steerer
+#---------DEVICE UID---------
+#1630 - Beam Steerer 
 #1678 - Beam Chopper
 
 
