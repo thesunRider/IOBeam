@@ -2,6 +2,7 @@ from django.shortcuts import render,redirect
 from django.contrib.auth.decorators import login_required
 
 from home.models import device
+from .forms import EditorForm
 
 # Create your views here.
 #1630 - Beam Steerer
@@ -20,7 +21,8 @@ def device_show(request):
 			context['device_in'] = list(device_in.values())[0]
 			context['title_page'] = "Beam Steering"
 			print(context)
-			return render(request,"beamsteering.template",context=context)
+			form=EditorForm()
+			return render(request,"beamsteering.template",{"context":context,"form":form})
 
 
 	return redirect('dashboard')
