@@ -1,5 +1,5 @@
+django
+asgiref
+pytz
+sqlparse
 django-ace 
-django==3.2.5
-asgiref==3.4.1
-pytz==2021.1
-sqlparse==0.4.1
