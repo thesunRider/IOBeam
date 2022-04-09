@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-o06%et$++r!grq3dvy9y67whw@g*-i!2aw6-5!_-d=*hdlv(bw
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1','projectiobeam.herokuapp.com','0.0.0.0']
 
 
 # Application definition
@@ -120,6 +120,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
+STATIC_ROOT = 'staticfiles'
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR,"static")
@@ -136,3 +137,6 @@ LOGIN_URL = '/auth/login'
 AUTHENTICATION_BACKENDS = ('authentication.emailpass.EmailBackend',)
 
 #ASGI_APPLICATION = "iobeam_website.asgi.application"
+
+
+CSRF_TRUSTED_ORIGINS = ['https://projectiobeam.herokuapp.com','https://*.127.0.0.1']
