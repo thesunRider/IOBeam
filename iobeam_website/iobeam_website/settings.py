@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-o06%et$++r!grq3dvy9y67whw@g*-i!2aw6-5!_-d=*hdlv(bw
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1','projectiobeam.herokuapp.com','0.0.0.0']
 
 
 # Application definition
