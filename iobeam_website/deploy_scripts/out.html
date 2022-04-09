@@ -1,0 +1,31 @@
+
+[m[32m]9;8;"USERNAME"\@]9;8;"COMPUTERNAME"\ [92mD:\design_works\electronics\optics_project\project\iobeam_website\deploy_scripts[90m
+[90m$[m ]9;12\setlocal EnableDelayedExpansions 
+
+[m[32m]9;8;"USERNAME"\@]9;8;"COMPUTERNAME"\ [92mD:\design_works\electronics\optics_project\project\iobeam_website\deploy_scripts[90m
+[90m$[m ]9;12\rem 1630 - Beam Steerer 
+
+[m[32m]9;8;"USERNAME"\@]9;8;"COMPUTERNAME"\ [92mD:\design_works\electronics\optics_project\project\iobeam_website\deploy_scripts[90m
+[90m$[m ]9;12\rem 1678 - Beam Chopper 
+
+[m[32m]9;8;"USERNAME"\@]9;8;"COMPUTERNAME"\ [92mD:\design_works\electronics\optics_project\project\iobeam_website\deploy_scripts[90m
+[90m$[m ]9;12\set dev_uid=2553730979 
+
+[m[32m]9;8;"USERNAME"\@]9;8;"COMPUTERNAME"\ [92mD:\design_works\electronics\optics_project\project\iobeam_website\deploy_scripts[90m
+[90m$[m ]9;12\set dev_type=1630 
+
+[m[32m]9;8;"USERNAME"\@]9;8;"COMPUTERNAME"\ [92mD:\design_works\electronics\optics_project\project\iobeam_website\deploy_scripts[90m
+[90m$[m ]9;12\set dev_version=1.2 
+
+[m[32m]9;8;"USERNAME"\@]9;8;"COMPUTERNAME"\ [92mD:\design_works\electronics\optics_project\project\iobeam_website\deploy_scripts[90m
+[90m$[m ]9;12\set usr_email=testdev@test.com 
+
+[m[32m]9;8;"USERNAME"\@]9;8;"COMPUTERNAME"\ [92mD:\design_works\electronics\optics_project\project\iobeam_website\deploy_scripts[90m
+[90m$[m ]9;12\set usr_pass=testdev@123 
+
+[m[32m]9;8;"USERNAME"\@]9;8;"COMPUTERNAME"\ [92mD:\design_works\electronics\optics_project\project\iobeam_website\deploy_scripts[90m
+[90m$[m ]9;12\set host=https://projectiobeam.herokuapp.com 
+
+[m[32m]9;8;"USERNAME"\@]9;8;"COMPUTERNAME"\ [92mD:\design_works\electronics\optics_project\project\iobeam_website\deploy_scripts[90m
+[90m$[m ]9;12\curl -k -d "device_uid=2553730979&device_type=1630&device_version=1.2&email=testdev@test.com&password=testdev@123"   -X POST https://projectiobeam.herokuapp.com/polls/connector_registerdevice 
+{"msg": "Invalid credentials", "code": 201}
