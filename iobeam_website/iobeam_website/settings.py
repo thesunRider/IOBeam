@@ -137,3 +137,6 @@ LOGIN_URL = '/auth/login'
 AUTHENTICATION_BACKENDS = ('authentication.emailpass.EmailBackend',)
 
 #ASGI_APPLICATION = "iobeam_website.asgi.application"
+
+
+CSRF_TRUSTED_ORIGINS = ['https://projectiobeam.herokuapp.com','https://*.127.0.0.1']
