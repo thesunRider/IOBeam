@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <cstring>
+#include <ctype.h>
+
 #define Ang_type	200
 #define Ang		201
 #define Delay		202
@@ -29,7 +31,9 @@
 #define MATH_GRTR		404
 #define MATH_PLUS		405
 #define MATH_MINS		406
-#define MATH_NUMBER		407
+#define MATH_MULTIPLY	407
+#define MATH_DIVIDE		408
+#define MATH_NUMBER		409
 
 
 #define MAX_LINE_LENGTH 60
@@ -67,6 +71,8 @@ void displayList(struct node *node);
 void push(struct node** head, int id,char* name, struct node* param);
 void append(struct node** head,  int id,char* name, struct node* param);
 void insertAfter(struct node* prev_node, int id,char* name, struct node* param);
+bool checkisnumber(char *word);
+bool checkif_aUN(char *word);
 
 int main(void)
 {
@@ -326,17 +332,16 @@ int get_id(char* word){
  if( strcmp(word,"*") == 0)
  	return MATH_MULTIPLY;
 
+ if(checkisnumber(word))
+ 	return MATH_NUMBER;
 
- return TOKEN_ID;
+ if(checkif_aUN(word))
+ 	return TOKEN_ID;
+
+
+ return TOKEN_OTHER;
 }
 
-
-#define 		402
-#define 		403
-#define 		404
-#define 		405
-#define 		406
-#define 		407
 
 struct node* get_param(char *word){
 	return NULL;
@@ -359,6 +364,29 @@ void reset_enviornment(char *line){
 }
 
 //string helper 
+
+
+bool checkisnumber(char *word){
+for (int i = 0; i< strlen(word);i++)
+	if(!isdigit(word[i]))
+		return false;
+
+return true;
+}
+
+
+//alpha,not uppercase,not number
+bool checkif_aUN(char *word){
+	if (isdigit(word[0]) || isupper(word[0]))
+		return false;
+
+	for (int i = 0; i< strlen(word);i++)
+		if(!isalnum(word[i]))
+			if(!(strcmp(&word[i],"_") == 0))
+				return false;
+
+	return true;
+}
 
 bool checkifempty(char *line){
 for (int i =0 ;i< strlen(line);i++){

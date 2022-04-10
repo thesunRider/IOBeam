@@ -110,10 +110,11 @@ k = 21";
     
 
     displayList(token_tree);
+regex b("(Geek)(.*)");
+regex_match("GeeksForGeeks",b);
 
     return 0;
 }
-
 
 
 
