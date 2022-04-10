@@ -1,35 +1,35 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <cstring>
-#define Ang_type	200
-#define Ang		201
-#define Delay		202
-#define Deg		203
-#define Ask_press	204
-#define Wait		205
-#define Ang_step	206
-#define Screen		207
-#define Dist		208
-#define Inclination	209
-#define Home		210
 
-#define Var		300
-#define If		301
-#define Loop		302
-#define For		303
-#define EndFor		304
-#define EndLoop		305
-#define EndIf		306
+#define Ang_type  200
+#define Ang   201
+#define Delay   202
+#define Deg   203
+#define Ask_press 204
+#define Wait    205
+#define Ang_step  206
+#define Screen    207
+#define Dist    208
+#define Inclination 209
+#define Home    210
+
+#define Var   300
+#define If    301
+#define Loop    302
+#define For   303
+#define EndFor    304
+#define EndLoop   305
+#define EndIf   306
 
 
-#define MATH_SIN		400
-#define MATH_COS		401
-#define MATH_EQUAL		402
-#define MATH_LESS		403
-#define MATH_GRTR		404
-#define MATH_PLUS		405
-#define MATH_MINS		406
-#define MATH_NUMBER		407
+#define MATH_SIN    400
+#define MATH_COS    401
+#define MATH_EQUAL
+#define MATH_LESS
+#define MATH_GRTR
+#define MATH_PLUS
+#define MATH_MINS
+#define MATH_NUMBER
 
 
 #define MAX_LINE_LENGTH 60
@@ -43,19 +43,17 @@
 #define TOKEN_OTHER 94
 
 struct node{
-	char *name;
-	int id;
-	int val;
-	int uniqid;
-	struct node *param;
-	struct node *next;
+  char *name;
+  int id;
+  int val;
+  struct node *param;
+  struct node *next;
 }; 
 
 struct node *token_tree;
 
 int prg_lines = 0;
 
-int generateID();
 bool checkifempty(char *line);
 void reset_enviornment(char* line);
 int gather_vars(char* line,int prg_lines);
@@ -78,7 +76,7 @@ ask_press \n\
 \n\
 \n\
  \n\
-	\n\
+  \n\
 var k = 500\n\
 k = 21";
 
@@ -93,22 +91,22 @@ k = 21";
 
     //count total lines
     while(dummy_line){
-	  if(!checkifempty(dummy_line)){
-	  	++prg_lines;
-	  	strcpy(line[prg_lines],dummy_line);
-	  	split_tokens(dummy_line);
+    if(!checkifempty(dummy_line)){
+      ++prg_lines;
+      strcpy(line[prg_lines],dummy_line);
+      split_tokens(dummy_line);
 
-	  }
+    }
 
-	  dummy_line = strtok_r(NULL,"\n",&prg_ptr);
-	}
+    dummy_line = strtok_r(NULL,"\n",&prg_ptr);
+  }
 
     printf ("\nTotal line count> %d \n",prg_lines);
-	printf("______PROG__________\n");
-	for (int i = 0 ; i<= prg_lines;i++)
-		printf("%s\n", line[i]);
+  printf("______PROG__________\n");
+  for (int i = 0 ; i<= prg_lines;i++)
+    printf("%s\n", line[i]);
 
-	printf("____________________\n");
+  printf("____________________\n");
     
 
     displayList(token_tree);
@@ -130,7 +128,6 @@ void push(struct node** head, int id,char* name, struct node* param)
    newNode->id = id;
    newNode->name = name;
    newNode->param = param;
-   newNode->uniqid = generateID();
  
    newNode->next = (*head);
    (*head) = newNode;
@@ -148,8 +145,6 @@ if (prev_node == NULL)
    newNode->id = id;
    newNode->name = name;
    newNode->param = param;
-   newNode->uniqid = generateID();
-
    newNode->next = prev_node->next;
     prev_node->next = newNode;
 }
@@ -162,7 +157,6 @@ struct node *last = *head;
    newNode->id = id;
    newNode->name = name;
    newNode->param = param;
-   newNode->uniqid = generateID();
 
 newNode->next = NULL;
  
@@ -207,10 +201,10 @@ void displayList(struct node *node)
    {
       printf("%d-->",node->id);
       if(node->param != NULL){
-      		printf("(");
-      		displayList(node->param);
-      		printf(") ");
-  		}
+          printf("(");
+          displayList(node->param);
+          printf(") ");
+      }
       node = node->next;
    }
 
@@ -232,12 +226,12 @@ struct node *last_node = getlastnode(&token_tree);
  
 
  while(word){
-		printf("token %d %s ;id = %d \n",i,word,get_id(word));
-		if (i > 0)
-			append(&last_node->param,get_id(word),NULL,NULL);
+    printf("token %d %s ;id = %d \n",i,word,get_id(word));
+    if (i > 0)
+      append(&last_node->param,get_id(word),NULL,NULL);
 
-		word = strtok_r(NULL," ",&rest);
-		++i;
+    word = strtok_r(NULL," ",&rest);
+    ++i;
     }
 }
 
@@ -245,101 +239,67 @@ struct node *last_node = getlastnode(&token_tree);
 int get_id(char* word){
 
  if( strcmp(word,"if")  == 0)
- 	return If;
+  return If;
 
  if( strcmp(word,"loop") == 0)
- 	return Loop;
+  return Loop;
 
  if( strcmp(word,"for") == 0)
- 	return For;
+  return For;
 
  if( strcmp(word,"endfor") == 0)
- 	return EndFor;
+  return EndFor;
 
  if( strcmp(word,"endloop") == 0)
- 	return EndLoop;
+  return EndLoop;
 
  if( strcmp(word,"endif") == 0)
- 	return EndIf;
+  return EndIf;
 
  if( strcmp(word,"sin") == 0)
- 	return MATH_SIN;
+  return MATH_SIN;
 
  if( strcmp(word,"cos") == 0)
- 	return MATH_COS;
+  return MATH_COS;
 
  if( strcmp(word,"ang_type") == 0)
- 	return Ang_type;
+  return Ang_type;
 
   if( strcmp(word,"ang") == 0)
- 	return Ang;
+  return Ang;
 
   if( strcmp(word,"delay") == 0)
- 	return Delay;
+  return Delay;
 
   if( strcmp(word,"deg") == 0)
- 	return Deg;
+  return Deg;
 
   if( strcmp(word,"ask_press") == 0)
- 	return Ask_press;
+  return Ask_press;
 
   if( strcmp(word,"wait") == 0)
- 	return Wait;
+  return Wait;
 
   if( strcmp(word,"ang_step") == 0)
- 	return Ang_step;
+  return Ang_step;
 
   if( strcmp(word,"dist") == 0)
- 	return Dist;
+  return Dist;
 
   if( strcmp(word,"inclination") == 0)
- 	return Inclination;
+  return Inclination;
 
   if( strcmp(word,"home") == 0)
- 	return Home;
+  return Home;
 
  if( strcmp(word,"var") == 0)
- 	return Var;
+  return Var;
 
- if( strcmp(word,"var") == 0)
- 	return Var;
-
- if( strcmp(word,"=") == 0)
- 	return MATH_EQUAL;
-
- if( strcmp(word,"<") == 0)
- 	return MATH_LESS;
-
- if( strcmp(word,">") == 0)
- 	return MATH_GRTR;
-
- if( strcmp(word,"+") == 0)
- 	return MATH_PLUS;
-
- if( strcmp(word,"-") == 0)
- 	return MATH_MINS;
-
-
- if( strcmp(word,"/") == 0)
- 	return MATH_DIVIDE;
-
- if( strcmp(word,"*") == 0)
- 	return MATH_MULTIPLY;
-
-
- return TOKEN_ID;
+ return TOKEN_OTHER;
 }
 
-
-#define 		402
-#define 		403
-#define 		404
-#define 		405
-#define 		406
-#define 		407
-
 struct node* get_param(char *word){
-	return NULL;
+  return NULL;
 }
 
 int gather_vars(char *line,int prg_lines){
@@ -363,14 +323,8 @@ void reset_enviornment(char *line){
 bool checkifempty(char *line){
 for (int i =0 ;i< strlen(line);i++){
     if ( !(line[i] == '\r'|| line[i]  == '\t' || line[i] == '\0' || line[i] == ' ' || line[i] == '\n' )){
-	return false;
+  return false;
      }
   }
   return true;
-}
-
-int generateID()
-{
-    static int s_itemID{ 0 };
-    return s_itemID++;
 }

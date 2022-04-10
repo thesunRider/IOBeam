@@ -1,0 +1,11 @@
+var i = 10
+ang_type Deg
+ang 30d,30d Wait
+delay 1000
+ask_press
+
+
+ 
+	
+var k = 500
+k = var
