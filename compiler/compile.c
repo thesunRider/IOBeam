@@ -34,6 +34,7 @@
 #define MATH_MULTIPLY	407
 #define MATH_DIVIDE		408
 #define MATH_NUMBER		409
+#define MATH_ISTO		410
 
 
 #define MAX_LINE_LENGTH 60
@@ -53,11 +54,15 @@ struct node{
 	int uniqid;
 	struct node *param;
 	struct node *next;
+	struct node *block;
 }; 
 
 struct node *token_tree;
 
 int prg_lines = 0;
+
+node* token_stack[10];
+int token_stack_pointer = 0;
 
 int generateID();
 bool checkifempty(char *line);
@@ -69,10 +74,14 @@ int get_id(char* word);
 struct node* get_param(char* word);
 void displayList(struct node *node);
 void push(struct node** head, int id,char* name, struct node* param);
-void append(struct node** head,  int id,char* name, struct node* param);
-void insertAfter(struct node* prev_node, int id,char* name, struct node* param);
+struct node* append(struct node** head,  int id,char* name, struct node* param,struct node* block);
+void insertAfter(struct node* prev_node, int id,char* name, struct node* param,struct node* block);
 bool checkisnumber(char *word);
 bool checkif_aUN(char *word);
+const char* get_char(int id);
+void append_token(int id,bool param);
+struct node* findnode(struct node** head,int uniqid);
+struct node* createnode( int id,char* name, struct node* param,struct node* block);
 
 int main(void)
 {
@@ -85,8 +94,10 @@ ask_press \n\
 \n\
  \n\
 	\n\
+if i < 10 : \n\
 var k = 500\n\
-k = 21";
+k = 21 \n\
+endif";
 
    char *prg_ptr = NULL;
 
@@ -129,21 +140,23 @@ k = 21";
 //linked list helpers
 
 //insert a new node in front of the list
-void push(struct node** head, int id,char* name, struct node* param)
+void push(struct node** head, int id,char* name, struct node* param, struct node* block)
 {
    struct node* newNode = new node;
  
    newNode->id = id;
    newNode->name = name;
    newNode->param = param;
+   newNode->param = block;
+
    newNode->uniqid = generateID();
- 
+ 	
    newNode->next = (*head);
    (*head) = newNode;
 }
  
 //insert new node after a given node
-void insertAfter(struct node* prev_node, int id,char* name, struct node* param)
+void insertAfter(struct node* prev_node, int id,char* name, struct node* param, struct node* block)
 {
 if (prev_node == NULL)
 {
@@ -154,28 +167,51 @@ if (prev_node == NULL)
    newNode->id = id;
    newNode->name = name;
    newNode->param = param;
+
+   newNode->block = block;
+
    newNode->uniqid = generateID();
 
    newNode->next = prev_node->next;
     prev_node->next = newNode;
 }
+
+struct node* createnode( int id,char* name, struct node* param,struct node* block){
+	struct node* newNode = new node;
+
+	int uniqid = generateID();
+
+	newNode->id = id;
+	newNode->name = name;
+	newNode->param = param;
+	newNode->block = block;
+
+	newNode->uniqid = uniqid;
+    newNode->next = NULL;
+	return newNode
+}
+
  
-void append(struct node** head,  int id,char* name, struct node* param)
+struct node* append(struct node** head,  int id,char* name, struct node* param,struct node* block)
 {
 struct node* newNode = new node;
 struct node *last = *head;
 
+int uniqid = generateID();
+
    newNode->id = id;
    newNode->name = name;
    newNode->param = param;
-   newNode->uniqid = generateID();
+   newNode->block = block;
+
+   newNode->uniqid = uniqid;
 
 newNode->next = NULL;
  
 if (*head == NULL)
 {
 *head = newNode;
-return;
+return newNode;
 }
  
 /* 5. Else traverse till the last node */
@@ -184,25 +220,51 @@ last = last->next;
  
 /* 6. Change the next of last node */
 last->next = newNode;
-return;
+return newNode;
 }
 
 
 struct node* getlastnode(struct node** head){
-struct node *last = *head;
+	struct node *last = *head;
 
- 
-if (*head == NULL)
-{
-printf("HEAD CANT BE NULL\n");
-return NULL;
+	if (*head == NULL)
+	{
+	return *head;
+	}
+	 
+	/* 5. Else traverse till the last node */
+	while (last->next != NULL)
+	last = last->next;
+	 
+	return last;
+
 }
- 
-/* 5. Else traverse till the last node */
-while (last->next != NULL)
-last = last->next;
- 
-return last;
+
+struct node* findnode(struct node** head,int uniqid){
+	printf("Searching for : %d \n",uniqid);
+	struct node *last = *head;
+
+	if (last == NULL)
+		return NULL;
+
+	if (last->uniqid == uniqid)
+		return last;
+	 
+	/* 5. Else traverse till the last node */
+	while (last != NULL){
+		if(last->uniqid == uniqid){
+			printf("Current uniq: %d id: %s \n",last->uniqid,get_char(last->id));
+			return last;}
+
+		if (last->block != NULL){
+			struct node* fnd = findnode(&last->block,uniqid);
+			if (fnd)
+				return fnd;
+		}
+
+	last = last->next;}
+	 
+	return NULL;
 
 }
 
@@ -211,11 +273,17 @@ void displayList(struct node *node)
    //traverse the list to display each node
    while (node != NULL)
    {
-      printf("%d-->",node->id);
+      printf("%s-->", get_char(node->id) );
       if(node->param != NULL){
       		printf("(");
       		displayList(node->param);
       		printf(") ");
+  		}
+
+  		if(node->block != NULL){
+      		printf(" [");
+      		displayList(node->block);
+      		printf("] ");
   		}
       node = node->next;
    }
@@ -230,21 +298,163 @@ void split_tokens(char* line){
  char *rest = NULL;
  word = strtok_r(line," ",&rest);
  int i = 0;
- int id;
+ int id = get_id(word);
 
+ append_token(id,false);
+ struct node *last_node = getlastnode(&token_tree);
 
-append(&token_tree,get_id(word),NULL,NULL);
-struct node *last_node = getlastnode(&token_tree);
- 
+ //append(&token_tree,id,NULL,NULL);
 
  while(word){
-		printf("token %d %s ;id = %d \n",i,word,get_id(word));
-		if (i > 0)
-			append(&last_node->param,get_id(word),NULL,NULL);
+ 		id = get_id(word);
+		printf("token %d %s ;id = %d \n",i,word,id);
+
+		if (i > 0 )
+ 			append_token(id,true);
 
 		word = strtok_r(NULL," ",&rest);
 		++i;
     }
+}
+
+void append_token(int id,bool param){
+	static int state_var;
+	struct node* node_found ;
+
+	switch(id){
+		case If:
+			node_found = findnode(&token_tree,token_stack[token_stack_pointer]);
+			state_var = 0;
+			printf("statevar > %d\n",state_var);
+
+		case MATH_ISTO:
+			token_stack
+			++token_stack_pointer;
+			state_var = 0;
+			break;
+
+		case EndIf:
+			--token_stack_pointer;
+			break;
+
+		default:
+			
+			if(token_stack[token_stack_pointer] != NULL)
+				if (param){
+					if(token_stack[token_stack_pointer]->param != NULL)
+						append(getlastnode(token_stack[token_stack_pointer]->param),id,NULL,NULL,NULL);
+					else
+						token_stack[token_stack_pointer]->param = createnode(id,NULL, NULL,NULL);
+				}else
+					token_stack[token_stack_pointer] = append(token_stack[token_stack_pointer],id,NULL,NULL,NULL);
+
+
+			if(token_stack_pointer == 0)
+				token_stack[token_stack_pointer] = append(&token_tree,id,NULL,NULL,NULL);
+			
+
+			
+
+			break;
+
+
+	}
+
+}
+
+const char* get_char(int id){
+
+ if( id == If)
+ 	return "if";
+
+ if( id == Loop)
+ 	return "loop";
+
+ if( id == For)
+ 	return "for";
+
+ if( id == EndFor)
+ 	return "endfor";
+
+ if( id == EndLoop)
+ 	return "endloop";
+
+ if( id == EndIf)
+ 	return "endif";
+
+ if( id == MATH_SIN)
+ 	return "sin";
+
+ if( id == MATH_COS)
+ 	return "cos";
+
+ if( id == Ang_type)
+ 	return "ang_type";
+
+  if( id == Ang)
+ 	return "ang";
+
+  if( id == Delay)
+ 	return "delay";
+
+  if( id == Deg)
+ 	return "deg";
+
+  if( id == Ask_press)
+ 	return "ask_press";
+
+  if( id == Wait)
+ 	return "wait";
+
+  if( id == Ang_step)
+ 	return "ang_step";
+
+  if( id == Dist)
+ 	return "dist";
+
+  if( id == Inclination)
+ 	return "inclination";
+
+  if( id == Home)
+ 	return "home";
+
+ if( id == Var)
+ 	return "var";
+
+ if( id == MATH_EQUAL)
+ 	return "=";
+
+ if( id == MATH_LESS)
+ 	return "<";
+
+ if( id == MATH_GRTR)
+ 	return ">";
+
+ if( id == MATH_PLUS)
+ 	return "+";
+
+ if( id == MATH_MINS)
+ 	return "-";
+
+
+ if( id == MATH_DIVIDE)
+ 	return "/";
+
+ if( id == MATH_MULTIPLY)
+ 	return "*";
+
+
+ if( id == MATH_ISTO)
+ 	return ":";
+
+ if(id == MATH_NUMBER)
+ 	return "numb";
+
+ if( id == TOKEN_ID )
+ 	return "id";
+
+
+ return "other";
 }
 
 
@@ -307,9 +517,6 @@ int get_id(char* word){
  if( strcmp(word,"var") == 0)
  	return Var;
 
- if( strcmp(word,"var") == 0)
- 	return Var;
-
  if( strcmp(word,"=") == 0)
  	return MATH_EQUAL;
 
@@ -331,6 +538,9 @@ int get_id(char* word){
 
  if( strcmp(word,"*") == 0)
  	return MATH_MULTIPLY;
+
+ if( strcmp(word,":") == 0)
+ 	return MATH_ISTO;
 
  if(checkisnumber(word))
  	return MATH_NUMBER;

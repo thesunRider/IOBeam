@@ -24,12 +24,14 @@
 
 #define MATH_SIN    400
 #define MATH_COS    401
-#define MATH_EQUAL
-#define MATH_LESS
-#define MATH_GRTR
-#define MATH_PLUS
-#define MATH_MINS
-#define MATH_NUMBER
+#define MATH_EQUAL    402
+#define MATH_LESS   403
+#define MATH_GRTR   404
+#define MATH_PLUS   405
+#define MATH_MINS   406
+#define MATH_MULTIPLY 407
+#define MATH_DIVIDE   408
+#define MATH_NUMBER   409
 
 
 #define MAX_LINE_LENGTH 60
@@ -46,6 +48,7 @@ struct node{
   char *name;
   int id;
   int val;
+  int uniqid;
   struct node *param;
   struct node *next;
 }; 
@@ -54,6 +57,7 @@ struct node *token_tree;
 
 int prg_lines = 0;
 
+int generateID();
 bool checkifempty(char *line);
 void reset_enviornment(char* line);
 int gather_vars(char* line,int prg_lines);
@@ -65,6 +69,8 @@ void displayList(struct node *node);
 void push(struct node** head, int id,char* name, struct node* param);
 void append(struct node** head,  int id,char* name, struct node* param);
 void insertAfter(struct node* prev_node, int id,char* name, struct node* param);
+bool checkisnumber(char *word);
+bool checkif_aUN(char *word);
 
 int main(void)
 {
@@ -110,11 +116,10 @@ k = 21";
     
 
     displayList(token_tree);
-regex b("(Geek)(.*)");
-regex_match("GeeksForGeeks",b);
 
     return 0;
 }
+
 
 
 
@@ -129,6 +134,7 @@ void push(struct node** head, int id,char* name, struct node* param)
    newNode->id = id;
    newNode->name = name;
    newNode->param = param;
+   newNode->uniqid = generateID();
  
    newNode->next = (*head);
    (*head) = newNode;
@@ -146,6 +152,8 @@ if (prev_node == NULL)
    newNode->id = id;
    newNode->name = name;
    newNode->param = param;
+   newNode->uniqid = generateID();
+
    newNode->next = prev_node->next;
     prev_node->next = newNode;
 }
@@ -158,6 +166,7 @@ struct node *last = *head;
    newNode->id = id;
    newNode->name = name;
    newNode->param = param;
+   newNode->uniqid = generateID();
 
 newNode->next = NULL;
  
@@ -296,8 +305,41 @@ int get_id(char* word){
  if( strcmp(word,"var") == 0)
   return Var;
 
+ if( strcmp(word,"var") == 0)
+  return Var;
+
+ if( strcmp(word,"=") == 0)
+  return MATH_EQUAL;
+
+ if( strcmp(word,"<") == 0)
+  return MATH_LESS;
+
+ if( strcmp(word,">") == 0)
+  return MATH_GRTR;
+
+ if( strcmp(word,"+") == 0)
+  return MATH_PLUS;
+
+ if( strcmp(word,"-") == 0)
+  return MATH_MINS;
+
+
+ if( strcmp(word,"/") == 0)
+  return MATH_DIVIDE;
+
+ if( strcmp(word,"*") == 0)
+  return MATH_MULTIPLY;
+
+ if(checkisnumber(word))
+  return MATH_NUMBER;
+
+ if(checkif_aUN(word))
+  return TOKEN_ID;
+
+
  return TOKEN_OTHER;
 }
+
 
 struct node* get_param(char *word){
   return NULL;
@@ -321,6 +363,29 @@ void reset_enviornment(char *line){
 
 //string helper 
 
+
+bool checkisnumber(char *word){
+for (int i = 0; i< strlen(word);i++)
+  if(!isdigit(word[i]))
+    return false;
+
+return true;
+}
+
+
+//alpha,not uppercase,not number
+bool checkif_aUN(char *word){
+  if (isdigit(word[0]) || isupper(word[0]))
+    return false;
+
+  for (int i = 0; i< strlen(word);i++)
+    if(!isalnum(word[i]))
+      if(!(strcmp(&word[i],"_") == 0))
+        return false;
+
+  return true;
+}
+
 bool checkifempty(char *line){
 for (int i =0 ;i< strlen(line);i++){
     if ( !(line[i] == '\r'|| line[i]  == '\t' || line[i] == '\0' || line[i] == ' ' || line[i] == '\n' )){
@@ -328,4 +393,10 @@ for (int i =0 ;i< strlen(line);i++){
      }
   }
   return true;
+}
+
+int generateID()
+{
+    static int s_itemID{ 0 };
+    return s_itemID++;
 }

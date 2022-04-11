@@ -6,6 +6,7 @@ ask_press
 
 
  
-	
+if i < 10 :
 var k = 500
 k = var
+endif
