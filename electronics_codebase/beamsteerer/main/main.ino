@@ -3,7 +3,6 @@
 
 */
 
-
 //IMPORTS-------------------------------
 #include <LiquidCrystal.h>
 #include <rotary.h>                 // rotary handler
