@@ -61,7 +61,7 @@ struct node *token_tree;
 
 int prg_lines = 0;
 
-node* token_stack[10];
+node** token_stack[10];
 int token_stack_pointer = 0;
 
 int generateID();
@@ -97,7 +97,8 @@ ask_press \n\
 if i < 10 : \n\
 var k = 500\n\
 k = 21 \n\
-endif";
+endif \n\
+delay k = 51";
 
    char *prg_ptr = NULL;
 
@@ -188,12 +189,11 @@ struct node* createnode( int id,char* name, struct node* param,struct node* bloc
 
 	newNode->uniqid = uniqid;
     newNode->next = NULL;
-	return newNode
+	return newNode;
 }
 
  
-struct node* append(struct node** head,  int id,char* name, struct node* param,struct node* block)
-{
+struct node* append(struct node** head,  int id,char* name, struct node* param,struct node* block){
 struct node* newNode = new node;
 struct node *last = *head;
 
@@ -270,6 +270,7 @@ struct node* findnode(struct node** head,int uniqid){
 
 void displayList(struct node *node)
 {
+	printf("AST DISPLAY: \n");
    //traverse the list to display each node
    while (node != NULL)
    {
@@ -307,7 +308,7 @@ void split_tokens(char* line){
 
  while(word){
  		id = get_id(word);
-		printf("token %d %s ;id = %d \n",i,word,id);
+		//printf("token %d %s ;id = %d \n",i,word,id);
 
 		if (i > 0 )
  			append_token(id,true);
@@ -322,35 +323,51 @@ void append_token(int id,bool param){
 	struct node* node_found ;
 
 	switch(id){
-		case If:
-			node_found = findnode(&token_tree,token_stack[token_stack_pointer]);
-			state_var = 0;
-			printf("statevar > %d\n",state_var);
 
 		case MATH_ISTO:
-			token_stack
 			++token_stack_pointer;
+			token_stack[token_stack_pointer] =  & (*token_stack[token_stack_pointer-1])->block;
 			state_var = 0;
 			break;
 
 		case EndIf:
+			token_stack[token_stack_pointer] = NULL;
 			--token_stack_pointer;
 			break;
 
 		default:
 			
-			if(token_stack[token_stack_pointer] != NULL)
+			if(token_stack[token_stack_pointer] != NULL || token_stack[token_stack_pointer] != 0 ){
 				if (param){
-					if(token_stack[token_stack_pointer]->param != NULL)
-						append(getlastnode(token_stack[token_stack_pointer]->param),id,NULL,NULL,NULL);
-					else
-						token_stack[token_stack_pointer]->param = createnode(id,NULL, NULL,NULL);
-				}else
-					token_stack[token_stack_pointer] = append(token_stack[token_stack_pointer],id,NULL,NULL,NULL);
 
+					if(&(*token_stack[token_stack_pointer])->param != NULL){
 
-			if(token_stack_pointer == 0)
-				token_stack[token_stack_pointer] = append(&token_tree,id,NULL,NULL,NULL);
+						printf("Called in add-param> %d %d> %s \n",token_stack_pointer,token_stack[token_stack_pointer],get_char(id));
+						node_found = getlastnode(&(*token_stack[token_stack_pointer])->param);
+						append(&node_found,id,NULL,NULL,NULL);
+					}
+					else{
+
+						printf("Called in first-param> %d %d> %s \n",token_stack_pointer,token_stack[token_stack_pointer],get_char(id));
+						(*token_stack[token_stack_pointer])->param = createnode(id,NULL, NULL,NULL);
+					}
+				}else{
+					printf("Called in non-param %d %d> %s \n",token_stack_pointer,token_stack[token_stack_pointer],get_char(id));	
+
+					*token_stack[token_stack_pointer] = append(&(*token_stack[token_stack_pointer]),id,NULL,NULL,NULL);
+				}
+			}else{
+				//first line parsing
+				if(token_stack[token_stack_pointer] == NULL && token_stack_pointer == 0){
+					printf("Called in inital-base %d %d> %s \n",token_stack_pointer,token_stack[token_stack_pointer],get_char(id));
+
+					token_stack[token_stack_pointer] = &token_tree;
+				}
+
+				printf("Called in base %d %d> %s \n",token_stack_pointer,*token_stack[token_stack_pointer],get_char(id));
+
+				*token_stack[token_stack_pointer] = append(&(*token_stack[token_stack_pointer]),id,NULL,NULL,NULL);
+			}
 			
 
 			
