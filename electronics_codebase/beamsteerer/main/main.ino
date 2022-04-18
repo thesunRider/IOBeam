@@ -41,8 +41,8 @@ Rotary r = Rotary(PINA, PINB, PUSHB);        // there is no must for using inter
 Rotary s = Rotary(PINA2, PINB2, PUSHB2);
 
 int columnsLCD = 16;
-char *MenuLine[] = {" Home", " Network Settings", " Hardware Settings", " About"};
-int MenuItems = 4;
+char *MenuLine[] = {" Home", " Network Settings", " Hardware Settings", "Record"," About"};
+int MenuItems = 5;
 int CursorLine = 0;
 
 
@@ -132,6 +132,7 @@ void loop ()
 {
 
   int inp = getinput(rotary_minstep);
+  //Serial.println(inp);
   switch (inp) {
 
     case 0x32:
@@ -217,12 +218,17 @@ void selection()
       login();
       break;
     case 2:
-      lcd.print("Option 3    ");
-      //set a flag or do something....
+      lcd.print("   Hardware Settings");
+      hardware_settings();
       break;
-    case 3:
+    case 4:
       about();
       break;
+
+    case 3:
+      record();
+      break;
+      
 
     default:
       break;
@@ -230,6 +236,253 @@ void selection()
 
   CursorLine = 0;     // reset to start position
 } //End selection
+
+void record(){
+  
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(">a1:");
+  lcd.print(angle1, 4);
+  angle_unit == 0 ? lcd.print((char)223) : lcd.print("r");
+
+  lcd.setCursor(0, 1);
+  lcd.print(" a2:");
+  lcd.print(angle2, 4);
+  angle_unit == 0 ? lcd.print((char)223) : lcd.print("r");
+
+  boolean flag = true;
+  int angle_select = 0;
+
+  lcd.setCursor(15 - String(angle_multiplier).length(), 1);
+  lcd.print(String(angle_multiplier) + "x");
+
+  if (angle_unit == 0 ) {
+    lcd.setCursor(15, 0);
+    lcd.print("d");
+  } else {
+    lcd.setCursor(15, 0);
+    lcd.print("r");
+  }
+
+
+  while (flag)
+  {
+    int inp = getinput(rotary_minstep);
+    switch (inp) {
+      case 0x55:
+        Serial.println("going back");
+        print_menu();
+        return;
+
+      case 0x32:
+        if (angle_select == 0) {
+          angle1 -= 0.1000 * angle_multiplier;
+        }
+        else if (angle_select == 1) {
+          angle2 -= 0.1000 * angle_multiplier;
+        }
+
+        break;
+
+      case 0x34:
+        if (angle_select == 0) {
+          angle1 += 0.1000 * angle_multiplier;
+        }
+        else if (angle_select == 1) {
+          angle2 += 0.1000 * angle_multiplier;
+        }
+
+        break;
+
+      case 0x42:
+        if (angle_select == 0) {
+          angle1 -= 0.0001 * angle_multiplier;
+        }
+        else if (angle_select == 1) {
+          angle2 -= 0.0001 * angle_multiplier;
+        }
+
+        break;
+
+      case 0x44:
+        if (angle_select == 0) {
+          angle1 += 0.0001 * angle_multiplier;
+        }
+        else if (angle_select == 1) {
+          angle2 += 0.0001 * angle_multiplier;
+        }
+
+        break;
+
+      //if button pressed tab through the options
+      case 0x35:
+        angle_select += 1;
+        if (angle_select >= 5)
+          angle_select = 0;
+        break;
+
+    }
+
+    if (inp == 0x32 || inp == 0x34 || inp == 0x42 || inp == 0x44) {
+
+      if (angle_select == 1) {
+        lcd.setCursor(0, 0);
+        lcd.print(" ");
+        lcd.setCursor(0, 1);
+        lcd.print(">");
+
+        if (angle2 < 0)
+          angle2 = 90;
+
+        if (angle2 > 90)
+          angle2 = 0;
+
+
+        stepper_move(angle2, 1);
+
+      } else if (angle_select == 5){
+        lcd.setCursor(14, 0);
+        lcd.print("8");
+
+      } else if (angle_select == 0) {
+        lcd.setCursor(0, 0);
+        lcd.print(">");
+        lcd.setCursor(0, 1);
+        lcd.print(" ");
+
+        if (angle1 < 0)
+          angle1 = 90;
+
+        if (angle1 > 90)
+          angle1 = 0;
+
+        stepper_move(angle1, 0);
+
+      }
+
+      if (angle_select == 2) { //change multiplier
+        angle_multiplier *= 10;
+
+        if (angle_multiplier == 100)
+          angle_multiplier = 50;
+        else if (angle_multiplier > 100)
+          angle_multiplier = 1;
+
+        lcd.setCursor(12, 1);
+        lcd.print("   "); //clear the screen buffer of 100x
+
+        lcd.setCursor(15 - String(angle_multiplier).length(), 1);
+        lcd.print(String(angle_multiplier) + "x");
+        lcd.cursor();
+
+      } else if (angle_select == 3) { //change unit
+        lcd.setCursor(15, 0);
+        ++angle_unit;
+        if (angle_unit > 1)
+          angle_unit = 0;
+
+      }
+
+      lcd.setCursor(15, 0);
+      angle_unit == 0 ? lcd.print("d") : lcd.print("r");
+
+
+      lcd.setCursor(1, 0);
+      lcd.print("a1:");
+      lcd.print(angle1, 4);
+      angle_unit == 0 ? lcd.print((char)223) : lcd.print("r");
+      lcd.print(" ");
+
+      lcd.setCursor(1, 1);
+      lcd.print("a2:");
+      lcd.print(angle2, 4);
+      angle_unit == 0 ? lcd.print((char)223) : lcd.print("r");
+      lcd.print(" ");
+
+
+    }
+
+    if ( inp == 0x35) {
+      if (angle_select == 1) {
+        lcd.setCursor(0, 0);
+        lcd.print(" ");
+        lcd.setCursor(0, 1);
+        lcd.print(">");
+      } else if (angle_select == 0) {
+        lcd.noCursor();
+        lcd.setCursor(0, 0);
+        lcd.print(">");
+        lcd.setCursor(0, 1);
+        lcd.print(" ");
+
+      } else if (angle_select == 2) { //change multiplier
+        lcd.setCursor(0, 0);
+        lcd.print(" ");
+        lcd.setCursor(0, 1);
+        lcd.print(" ");
+        lcd.setCursor(15 - String(angle_multiplier).length(), 1);
+        lcd.cursor();
+
+      } else if (angle_select == 3) { //change unit
+        lcd.setCursor(15, 0);
+      }
+    }
+
+    if (angle_select == 2) { //change multiplier
+      lcd.setCursor(15 - String(angle_multiplier).length(), 1);
+      lcd.cursor();
+
+    } else if (angle_select == 3) { //change unit
+      lcd.setCursor(15, 0);
+    } else if (angle_select == 5){
+        lcd.setCursor(14, 0);
+
+    }
+  }
+}
+
+void hardware_settings() {
+  lcd.clear();
+  int cur_sor;
+
+  lcd.setCursor(0, 0);
+  lcd.print(">Current Homing");
+
+  while (1) {
+
+    int inp = getinput(rotary_minstep);
+    //Serial.println(inp);
+    switch (inp) {
+      case 0x55:
+        Serial.println("going back");
+        print_menu();
+        return;
+        
+      case 0x32:
+        cur_sor -= 1;
+        if (cur_sor < 0)
+          cur_sor = 0;
+          
+        break;
+
+      case 0x34:
+        cur_sor += 1;
+        if (cur_sor > 4)
+          cur_sor = 4;
+          
+        break;
+
+      case 0x35:
+        Serial.println("Stepper reset");
+        if(cur_sor == 0)
+          stepper_move(0,4); //set as home all stepper
+        break;
+    }
+
+    delay(60);
+  }
+
+}
 
 void homepage()
 {
@@ -269,6 +522,11 @@ void homepage()
   {
     int inp = getinput(rotary_minstep);
     switch (inp) {
+      case 0x55:
+        Serial.println("going back");
+        print_menu();
+        return;
+
       case 0x32:
         if (angle_select == 0) {
           angle1 -= 0.1000 * angle_multiplier;
@@ -525,18 +783,20 @@ int getinput(int rotary_step) {
     return 0x45;
   }
 
-
+  if (buttonpressed(back)) {
+    return 0x55;
+  }
 
   return 0;
 
 }
 
-bool buttonpressed()
+bool buttonpressed(int buton_indx)
 {
-  if (digitalRead(back) != initial)
+  if (digitalRead(buton_indx) != initial)
   {
-    initial = digitalRead(back);
-    if (digitalRead(back) == HIGH)
+    initial = digitalRead(buton_indx);
+    if (digitalRead(buton_indx) == HIGH)
       return true;
   }
   return false;
@@ -570,11 +830,12 @@ void sendwire(char *str) {
   Serial.print("sent from main>> ");
   Serial.print(str);
   Serial.println();
-  
+
   Wire.beginTransmission(SLAVE_DRIVER); // transmit to device #4
   Wire.write(str);
   Wire.endTransmission();
 }
+
 
 void stepper_move(float stepper_angle, int stepper_index) {
 
@@ -599,6 +860,14 @@ void stepper_move(float stepper_angle, int stepper_index) {
 
     case 0x3: //home the steppers
 
+      break;
+
+    case 0x4:
+      dtostrf(stepper_angle, 10, 4, sendstring);
+      sendstring[0] = '1';
+      sendstring[1] = '4';
+      sendstring[2] = 'x';
+      sendwire(sendstring);
       break;
 
 
