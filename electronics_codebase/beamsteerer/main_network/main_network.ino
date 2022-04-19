@@ -23,7 +23,7 @@ void setup() {
   Serial.println(">begin network driver");
 }
 
-/** 0x10 - login
+/** 0x10 - login scan
     0x20 - scan wifi
            resp 0x53: val: -100 no wifi
            resp 0x53: val: -1 ,data string
