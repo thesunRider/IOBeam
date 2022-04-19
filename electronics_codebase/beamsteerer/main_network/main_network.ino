@@ -80,7 +80,6 @@ void loop() {
 
 
 
-
         case 0x20:
           Serial.println(">Scanning");
           WiFi.disconnect();
