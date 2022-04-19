@@ -28,6 +28,8 @@ def password_reset(request):
 
 	return render(request, "authbase_reset.template")
 
+
+#first_name will be our user uid
 def register_user(request):
 	# if this is a POST request we need to process the form data
 	if request.method == 'POST':
@@ -42,7 +44,7 @@ def register_user(request):
 						username=username,
 						password=password,
 						email=email,
-						user_uid=random.sample(range(10**7,(10**8)-1),1)[0]
+						first_name=random.sample(range(10**7,(10**8)-1),1)[0]
 					)
 			try:
 				newuser.save()

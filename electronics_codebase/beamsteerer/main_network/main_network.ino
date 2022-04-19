@@ -42,7 +42,8 @@ void loop() {
       Serial.print(">command in:");
       Serial.println(req.command_in);
       switch (req.command_in) {
-        case 0x1:
+        case 0x10:
+          
           break;
 
         case 0x21:
@@ -77,7 +78,6 @@ void loop() {
             Serial.println("ntwrk:53;-2");
           }
           break;
-
 
         case 0x20:
           Serial.println(">Scanning");

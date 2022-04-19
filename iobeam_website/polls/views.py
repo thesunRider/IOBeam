@@ -28,7 +28,7 @@ from home.models import device
 #call with devuce_uid as parameter,email and parameter
 @csrf_exempt
 def connector_registerdevice(request):
-	user = connector_checkuser(request)
+	user = polldevice_checkuser(request)
 	if user:
 		if len(device.objects.filter(device_uid__contains=request.POST['device_uid'])) > 0:
 			return JsonResponse({'msg':'Re-register Error','code':202})
@@ -46,9 +46,6 @@ def connector_listdevices(request):
 	device_list = list(device.objects.filter(device_owner__email__contains=request.user.email).values())
 	return JsonResponse({'msg':'success','code':401,'response_code':device_list})
 
-@csrf_exempt
-def check_userparam(request):
-	pass
 
 
 @csrf_exempt
@@ -61,7 +58,7 @@ def get_status(request):
 #call with email and parameter
 @csrf_exempt
 def login_device(request):
-	user = connector_checkuser(request)
+	user = polldevice_checkuser(request)
 	if user:
 		if len(device.objects.filter(device_uid__contains=request.POST['device_uid'])) > 0:
 			login(request, user)
