@@ -1,0 +1,32 @@
+//30d - 30 degree ,30r - 30 radian
+//10m - 10meter
+//10cm - 10centimeter
+
+ang_type deg
+ang 30d,30d wait //wait until the stepper reaches angle 30
+delay 1000 //wait for a second
+ask_press //wait until user presses a button on the control panel or on the web interface
+
+var i
+for i = 0 , i <100 , i=i+1
+ang i,i-5 wait
+endfor
+
+ang_step forward 10,0 wait
+
+screen dimension 1m,1m //set screen width and height
+screen dist 10m
+screen inclination 0d,0d //x inclination 0 degree, yinclination 0 degree
+screen home //goto 0,0 of screen
+
+var i
+loop(i)
+ screen scan 10cos(i),10sin(i)
+ if (i > 45)
+  endloop
+endif
+
+delay(1000)
+screen home //goto ang 45d
+
+endloop

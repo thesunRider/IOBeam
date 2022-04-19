@@ -1,7 +1,7 @@
 #include <Wire.h>
+#include "DStepper.h"
 
 #define SLAVE_DRIVER 4
-
 
 // 28BYJ-48, using an NTE2019 darlington (similar to uln2003) driver
 //   Blue   - 28BYJ48 pin 1 <-- 2019 <-- arduino pin 8
@@ -9,35 +9,30 @@
 //   Yellow - 28BYJ48 pin 3 <-- 2019 <-- arduino pin 10
 //   Orange - 28BYJ48 pin 4 <-- 2019 <-- arduino pin 11
 //   Red    - 28BYJ48 pin 5 <-- vcc
- 
+
 #define motor2_B 2
 #define motor2_P 3
 #define motor2_Y 4
 #define motor2_O 5
 
-long motorDelay = 1200L;  // fiddle with this to control the speed
 
-byte patterns[8] = {
-  0b00001000,
-  0b00001100,
-  0b00000100,
-  0b00000110,
-  0b00000010,
-  0b00000011,
-  0b00000001,
-  0b00001001,
-};
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+#define motor1_B 8
+#define motor1_P 9
+#define motor1_Y 10
+#define motor1_O 11
 
-void runsingle_step(long motorDelay = motorDelay) {
-  for (int i = 0; i < 8; i++) {
-    digitalWrite(motor2_B, bitRead(patterns[i], 0));
-    digitalWrite(motor2_P, bitRead(patterns[i], 1));
-    digitalWrite(motor2_Y, bitRead(patterns[i], 2));
-    digitalWrite(motor2_O, bitRead(patterns[i], 3));
-    delayMicroseconds(motorDelay);
-  }
-}
+#define motor_POT1 A0
+#define motor_POT2 A1
+
+#define IO0 12
+#define IO2 13
+
+int stepper1_potmean = 511;
+int stepper2_potmean = 512;
+
+DStepper stepper1 = DStepper(1, motor1_B, motor1_P, motor1_Y, motor1_O, A0);
+DStepper stepper2 = DStepper(1 , motor2_B, motor2_P, motor2_Y, motor2_O, A1);
+
 
 void setup() {
   // put your setup code here, to run once:
@@ -47,11 +42,17 @@ void setup() {
   Wire.onReceive(receiveEvent); // when recieving data
   Wire.onRequest(requestEvent);    // when sending data
 
+  pinMode(IO0,OUTPUT);
+  pinMode(IO2,OUTPUT);
 
-  pinMode(motor2_B, OUTPUT);
-  pinMode(motor2_P, OUTPUT);
-  pinMode(motor2_Y, OUTPUT);
-  pinMode(motor2_O, OUTPUT);
+  digitalWrite(IO0,LOW);
+  digitalWrite(IO2,HIGH);
+
+  //stepper1.homePot(stepper1_potmean, 2);
+  //stepper2.homePot(stepper1_potmean, 2);
+
+  stepper1.setcurrentPos(0);
+  stepper2.setcurrentPos(0);
 
 }
 
@@ -79,7 +80,7 @@ void receiveEvent(int numbytes) {
 
   Serial.print(command_in);
   Serial.print(":");
-  Serial.println(command_value,4);
+  Serial.println(command_value, 4);
 
   parsecommand(command_in, command_value);
 
@@ -94,15 +95,25 @@ void requestEvent() {
 //12 change angle of stepper 2
 void parsecommand(int command_in, float command_value) {
   switch (command_in) {
-    case 11:
+    case 11:  
+      stepper1.goto_angle(command_value - 45 );
+      Serial.print("READ POT1:");
+      Serial.println(analogRead(motor_POT1));
       break;
 
 
     case 12:
+      stepper2.goto_angle(command_value - 45);
+      Serial.print("READ POT2:");
+      Serial.println(analogRead(motor_POT2));
+      break;
+
+   case 14: 
+      Serial.println("Stepper reset");
+      stepper1.setcurrentPos(0);
+      stepper2.setcurrentPos(0);
       break;
 
 
   }
-
-
 }
