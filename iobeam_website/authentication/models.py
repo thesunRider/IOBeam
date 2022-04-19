@@ -12,6 +12,7 @@ class user(models.Model):
 	user_name = models.CharField( max_length = 100)
 	user_email = models.CharField( max_length = 100)
 	user_passhash = models.CharField( max_length = 100)
+	user_uid = models.IntegerField( max_length = 7)
 
 	def __str__(self):
 		return self.user_name

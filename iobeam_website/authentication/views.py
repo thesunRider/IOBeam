@@ -6,8 +6,10 @@ from django.contrib.auth import login as log_in
 from django.contrib.auth import logout as log_out
 from django.contrib.auth.models import User
 
+import random
 from .forms import UserForm, UserRegistrationForm
 # Create your views here.
+
 
 def login(request):
 	if request.user.is_authenticated:
@@ -39,7 +41,8 @@ def register_user(request):
 			newuser = User.objects.create_user(
 						username=username,
 						password=password,
-						email=email
+						email=email,
+						user_uid=random.sample(range(10**7,(10**8)-1),1)[0]
 					)
 			try:
 				newuser.save()

@@ -47,6 +47,11 @@ def connector_listdevices(request):
 	return JsonResponse({'msg':'success','code':401,'response_code':device_list})
 
 @csrf_exempt
+def check_userparam(request):
+	pass
+
+
+@csrf_exempt
 @login_required
 def get_status(request):
 	device_in = device.objects.filter(device_uid__contains=request.GET.get('device'))
