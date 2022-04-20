@@ -1,5 +1,11 @@
-#include <ESP8266WiFi.h>
 
+#include <ArduinoJson.h>
+#include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
+
+const String device_uid = "321321313132222";
+const String device_type = "1631";
+const String device_version = "1.3";
 
 const int RSSI_MAX = -50; // define maximum strength of signal in dBm
 const int RSSI_MIN = -100; // define minimum strength of signal in dBm
@@ -8,12 +14,24 @@ String inData;
 String password_wifi;
 int index_wifi;
 bool wifi_connected;
+WiFiClient client;
+
+String host = "http://192.168.43.96:3000";
+
+struct payload {
+  int code;
+  int dev_code; //for registering
+  int response_code;
+  String msg;
+};
 
 struct request {
   int command_in;
   String val;
 } ;
 
+
+struct payload retn;
 
 void setup() {
   Serial.begin(9600);
@@ -24,12 +42,14 @@ void setup() {
 }
 
 /** 0x10 - login scan
+           resp 53: val:-100 no wifi
+           resp 53: val:-7 couldnt register 
     0x20 - scan wifi
-           resp 0x53: val: -100 no wifi
-           resp 0x53: val: -1 ,data string
+           resp 53: val: -100 no wifi
+           resp 53: val: -1 ,data string
            Success , val 1
     0x21 - wifi connect using ssid index and password
-          resp  0x53: val: -2 error in request
+          resp  53: val: -2 error in request
           Success , val 1
 
 **/
@@ -42,11 +62,22 @@ void loop() {
       Serial.print(">command in:");
       Serial.println(req.command_in);
       switch (req.command_in) {
-        case 0x10:
-          
+        case 10:
+          if (WiFi.status() != WL_CONNECTED)
+          { Serial.println("ntwrk:53;-100");
+            break;
+          }
+          Serial.println(">USR_UID:"+req.val);
+          retn = postdata(host + "/polls/connector_registerdevice",
+                  "device_uid=" + device_uid + "&device_type=" + device_type + "&device_version=" + device_version + "&user_uid="+req.val);
+
+          if(retn.code != 401)
+            Serial.println("ntwrk:53;-7");
+          else
+            Serial.println("ntwrk:10;1");
           break;
 
-        case 0x21:
+        case 21:
           WiFi.disconnect();
           index_wifi = req.val.substring(0, req.val.indexOf(";")).toInt();
           if (WiFi.encryptionType(index_wifi) == ENC_TYPE_NONE)
@@ -62,7 +93,7 @@ void loop() {
             Serial.println(password_wifi);
             WiFi.begin(WiFi.SSID(index_wifi), password_wifi);
           }
-           wifi_connected = false;
+          wifi_connected = false;
           for (int i = 0; i < 100 ; i++) {
             if (WiFi.status() == WL_CONNECTED) {
               wifi_connected = true;
@@ -79,7 +110,7 @@ void loop() {
           }
           break;
 
-        case 0x20:
+        case 20:
           Serial.println(">Scanning");
           WiFi.disconnect();
 
@@ -150,6 +181,64 @@ bool checkdata(String indata) {
       return true;
   }
   return false;
+}
+
+struct payload postdata(String url, String httpRequestData) {
+  HTTPClient http;
+  bool connection_status = false;
+  struct payload payld;
+  StaticJsonDocument<156> doc;
+
+  Serial.print(">[HTTP] begin...\n");
+  if (http.begin(client, url)) {  // HTTP
+    http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+
+    int httpCode = http.POST(httpRequestData);
+    payld.response_code = httpCode;
+
+    // httpCode will be negative on error
+    if (httpCode > 0) {
+      // HTTP header has been send and Server response header has been handled
+      Serial.printf(">[HTTP] POST... code: %d\n", httpCode);
+
+      // file found at server
+      if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
+        String payload = http.getString();
+        Serial.println(">"+payload);
+        DeserializationError error = deserializeJson(doc, payload);
+
+        if (error) {
+          Serial.print(F( ">deserializeJson() failed: "));
+          Serial.println(error.f_str());
+          payld.code = -100;
+        } else {
+
+          payld.msg = String(doc["msg"]);
+          payld.code = (int) doc["code"];
+          payld.dev_code = (int) doc["dev_code"];
+
+          Serial.print(">");
+          Serial.println(payld.msg);
+
+          Serial.print(">");
+          Serial.println(payld.code);
+
+          Serial.print(">");
+          Serial.println(payld.dev_code);
+        }
+      } else {
+
+        Serial.printf(">[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+      }
+
+      http.end();
+    } else {
+      payld.response_code = -157;
+      Serial.printf(">[HTTP} Unable to connect\n");
+    }
+    return payld;
+
+  }
 }
 
 
