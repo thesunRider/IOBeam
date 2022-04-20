@@ -31,20 +31,20 @@ def connector_registerdevice(request):
 	user = polldevice_checkuser(request)
 	if user:
 		if len(device.objects.filter(device_uid__contains=request.POST['device_uid'])) > 0:
-			return JsonResponse({'msg':'Re-register Error','code':202})
+			return JsonResponse({"msg":"Re-register Error","code":202,"dev_code":0})
 
 		device_in = device(device_type=request.POST['device_type'], device_version=request.POST['device_version'],device_owner=user,device_status=True,device_uid = request.POST['device_uid'])
 		device_in.save()
 		login(request, user)
-		return JsonResponse({'msg':'Device Registered','code':400,'response_code':device_in.device_uid})
+		return JsonResponse({"msg":"Device Registered","code":400,"dev_code":device_in.device_uid})
 	else:
-		return JsonResponse({'msg':'Invalid credentials','code':201})
+		return JsonResponse({"msg":"Invalid credentials","code":201,"dev_code":0})
 
 #just call for devices for the user
 @login_required
 def connector_listdevices(request):
 	device_list = list(device.objects.filter(device_owner__email__contains=request.user.email).values())
-	return JsonResponse({'msg':'success','code':401,'response_code':device_list})
+	return JsonResponse({"msg":"success","code":401,"dev_code":device_list})
 
 
 
@@ -62,10 +62,10 @@ def login_device(request):
 	if user:
 		if len(device.objects.filter(device_uid__contains=request.POST['device_uid'])) > 0:
 			login(request, user)
-			return JsonResponse({'msg':'LOGIN success','code':402})
+			return JsonResponse({"msg":"LOGIN success","code":402,"dev_code":0})
 		else:
-			return JsonResponse({'msg':'Un-Registered Device','code':202})
+			return JsonResponse({"msg":"Un-Registered Device","code":202,"dev_code":0})
 	
 	else:
-		return JsonResponse({'msg':'Invalid credentials','code':201})
+		return JsonResponse({"msg":"Invalid credentials","code":201,"dev_code":0})
 

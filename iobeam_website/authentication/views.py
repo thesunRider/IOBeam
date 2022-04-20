@@ -29,7 +29,7 @@ def password_reset(request):
 	return render(request, "authbase_reset.template")
 
 
-#first_name will be our user uid
+#first_name will be our user uid if an error arises it is due to random number being selected same
 def register_user(request):
 	# if this is a POST request we need to process the form data
 	if request.method == 'POST':
@@ -40,11 +40,14 @@ def register_user(request):
 			username = request.POST['username']
 			password = request.POST['password']
 			email = request.POST['email']
+
+			print(">REGUSR mail:",email,"password:",password)
+
 			newuser = User.objects.create_user(
 						username=username,
 						password=password,
 						email=email,
-						first_name=random.sample(range(10**7,(10**8)-1),1)[0]
+						first_name=str(random.sample(range(10**4,(10**5)-1),1)[0])
 					)
 			try:
 				newuser.save()
@@ -74,6 +77,7 @@ def login_user(request):
 				username=email, 
 				password=password
 		)
+
 		if user is None:
 			return HttpResponse("Invalid credentials.")
 

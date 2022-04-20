@@ -5,8 +5,8 @@ import uuid
 # Create your models here.
 #---------DEVICE UID---------
 #1630 - Beam Steerer 
-#1678 - Beam Chopper
-
+#1631 - Beam Chopper
+#models can be viewed on <website>/site-admin/
 
 class device(models.Model): # Product is the name of our model
 	device_id = models.AutoField
@@ -28,7 +28,7 @@ class device(models.Model): # Product is the name of our model
 	def get_devicename():
 		if self.device_type == 1630:
 			return "beam_steerer_v1"
-		elif self.device_type == 1678:
+		elif self.device_type == 1631:
 			return "beam_chopper_v1"
 
 	def get_deviceurl():
