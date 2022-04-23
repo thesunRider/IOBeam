@@ -25,7 +25,14 @@
 
 
 void about();
-void login();
+void wifi_settings();
+void homepage();
+void preset();
+void hardware_settings();
+void network_settings();
+void record();
+void get_angle(int n);
+void reset_preset();
 int getinput(int rotary_step);
 void showLetters(int printStart, int startLetter, char*  messagePadded);
 
@@ -41,9 +48,13 @@ Rotary r = Rotary(PINA, PINB, PUSHB);        // there is no must for using inter
 Rotary s = Rotary(PINA2, PINB2, PUSHB2);
 
 int columnsLCD = 16;
-char *MenuLine[] = {" Home", " Network Settings", " Hardware Settings", "Record"," About"};
+char *MenuLine[] = {" Home", " Network Settings", " Hardware Settings", "Record"," Preset" ," About"};
 int MenuItems = 5;
 int CursorLine = 0;
+
+char *networkmenu[] = {" Wifi Connect", " Wifi Power", " Register Device"};
+int networkitems = 3;
+int networkcursor=0;
 
 
 char id[5];
@@ -167,7 +178,7 @@ void loop ()
     if (CursorLine > MenuItems - 1) {
       CursorLine = 0;                 // roll over to first item
     }
-    print_menu();
+   // print_menu();
   }
 
   //update every 400ms
@@ -214,21 +225,24 @@ void selection()
       homepage();
       break;
     case 1:
-      lcd.print("   Login ");
-      login();
+      lcd.print("  Network Settings");
+      network_settings();
       break;
     case 2:
       lcd.print("   Hardware Settings");
       hardware_settings();
       break;
     case 4:
-      about();
+      preset();
       break;
 
     case 3:
       record();
       break;
-      
+    
+    case 5:
+    about();
+      break;
 
     default:
       break;
@@ -237,7 +251,182 @@ void selection()
   CursorLine = 0;     // reset to start position
 } //End selection
 
-void record(){
+void preset()
+{
+ int cursor = 0;
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print(">Presets : ");
+  lcd.setCursor(10,0);
+  lcd.setCursor(0,1);
+  lcd.print(" Reset");
+  int value = 0;
+ bool flag = true;
+  while (flag)
+  {
+    int inp = getinput(rotary_minstep);
+  switch (inp) 
+  {
+
+    case 0x32:
+      value++;
+      if(value>5)
+      value = 1;
+      lcd.setCursor(0,1);
+      lcd.print(value);
+      break;
+
+    case 0x34:
+      value--;
+      if (value<1)
+      value = 5;
+      lcd.setCursor(0,1);
+      lcd.print(value);
+      break;
+
+    case 0x35:
+    if(value == 0)
+      get_angle(value);
+    else if (value == 1)
+    reset_preset();
+    flag = false;
+      break;
+
+     case 0x42:
+     cursor--;
+     if(cursor<0)
+     cursor=1;
+     lcd.setCursor(0,0);
+     lcd.print(" ");
+     lcd.setCursor(0,1);
+     lcd.print(" ");
+     lcd.setCursor(0,value);
+     lcd.print(">");
+     break;
+
+     
+     case 0x44:
+     if(cursor>0)
+     cursor =0;
+     lcd.setCursor(0,0);
+     lcd.print(" ");
+     lcd.setCursor(0,1);
+     lcd.print(" ");
+     lcd.setCursor(0,value);
+     lcd.print(">");
+     break;
+
+  }
+  }
+}
+int angles[5][2];
+void get_angle(int n)
+{
+  
+  for(int i = 0;i<n;i++)
+  {
+    
+    lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print(">a1 : ");
+    int value = 0;
+    bool flag = true;
+    while (flag)
+    {
+      int inp = getinput(rotary_minstep);
+      switch (inp) 
+      {
+  
+        case 0x32:
+        value+=10;
+        
+        if(value>360)
+        value = 0;
+        lcd.setCursor(7,0);
+        lcd.print("   ");
+        lcd.setCursor(7,0);
+        lcd.print(value);
+        
+        break;
+  
+        case 0x34:
+        value-=10;
+        if (value<0)
+        value = 360;
+        lcd.setCursor(7,0);
+        lcd.print("   ");
+        lcd.setCursor(7,0);
+        lcd.print(value);
+        
+        break;
+  
+        case 0x35:
+        angles[i][0] = value;
+        flag = false;
+        break;
+  
+  
+      }
+    }
+  lcd.setCursor(0,0);
+  lcd.print("a1 : ");
+  lcd.setCursor(0,1);
+  lcd.print(">a2 : ");
+  
+  
+     value = 0;
+     flag = true;
+    while (flag)
+    {
+        int inp = getinput(rotary_minstep);
+        switch (inp) 
+        {
+  
+        case 0x32:
+        value+=10;
+        if(value>360)
+        value = 0;
+        lcd.setCursor(7,0);
+        lcd.print("   ");
+        lcd.setCursor(7,0);
+        lcd.print(value);
+        
+        break;
+  
+       case 0x34:
+        value-=10;
+        if (value<0)
+        value = 360;
+        lcd.setCursor(7,0);
+        lcd.print("   ");
+        lcd.setCursor(7,0);
+        lcd.print(value);
+        break;
+  
+      case 0x35:
+        angles[i][1] = value;
+        flag = false;
+        break;
+        
+        default:
+        break;
+      
+    }
+    
+  }
+ }
+}
+void reset_preset()
+{
+  for(int i = 0;i<5;i++)
+  for(int j = 0;j<2;j++)
+  angles[i][j] = 0;
+
+}
+
+
+void record()
+{
   
   lcd.clear();
   lcd.setCursor(0, 0);
@@ -691,10 +880,9 @@ void homepage()
     }
 
   }
-
-
-
 }
+
+
 
 void about()
 {
@@ -724,17 +912,166 @@ void about()
   print_menu();
 }
 
-void login()
+
+
+void network_settings()
 {
   lcd.clear();
-  lcd.print("Enter User ID:");
-  lcd.setCursor(0, 1);
-  UserId();
-  lcd.clear();
-  lcd.print("Enter password:");
-  password();
+  lcd.setCursor(0, 0);     //(col, row)
+  lcd.print("   WIFI  ");
+  lcd.setCursor(0, 1);    //2nd row
+  lcd.print("<"); lcd.setCursor(columnsLCD - 1, 1); lcd.print(">");
+  lcd.setCursor(1, 1);
+  lcd.print(networkmenu[networkcursor]);
+  get_wifi_names();
+}
+String wifinames[20];
+int wificount = 0;
+int wifi_cursor = 0;
+char wifi_password[20];
+void get_wifi_names()
+{
+  Serial.println("ntwrk:32;100");
+
+  int flag=1;
+  String incomingstring;
+  while(flag==1)
+  {
+    incomingstring = Serial.readString();
+    if(incomingstring.substring(0,5)=="ntwrk")
+    {
+
+    incomingstring = incomingstring.substring(12); 
+      char str_array[incomingstring.length()];
+  char *token;
+  char t[2]=";";
+  token = strtok(str_array,t);
+  while(token != NULL)
+  {
+    Serial.println(token);
+    int indx = String(token).substring(0,String(token).indexOf("-")).toInt();
+    int pass_token = String(token).substring(String(token).indexOf("-")+1,String(token).indexOf("-")+2).toInt();
+    String wifi_name = String(token).substring(String(token).indexOf("-")+3);
+    wifinames[wificount++] = wifi_name;
+    token = strtok(NULL,t);
+  }
+      flag=0;
+    }
+  }
+  wifi_name_screen();
 }
 
+
+void wifi_name_screen()
+{
+  while(true)
+  {
+    int inp = getinput(rotary_minstep);
+  //Serial.println(inp);
+  switch (inp) {
+
+    case 0x32:
+      wifi_cursor--;
+      display_wifi();
+      break;
+
+    case 0x34:
+      wifi_cursor ++;
+      display_wifi();
+      break;
+
+    case 0x35:
+      wifi_selection();
+      break;
+
+    case 0x42:
+      break;
+
+    case 0x44:
+      break;
+
+  }
+  }
+  
+}
+void display_wifi()
+{
+if(wifi_cursor >=wificount)
+wifi_cursor = 0;
+else if (wifi_cursor<0)
+wifi_cursor = wificount-1;
+lcd.clear();
+int temp = wifi_cursor;
+  for(int i =0;i<2;i++)
+  {
+    if (temp == wificount)
+    temp = 0;
+    lcd.setCursor(0,i);
+  lcd.print(wifinames[temp]);
+  temp++;
+  }
+
+}
+void wifi_selection()
+{
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Password");
+  lcd.setCursor(0,1);
+  int pass = 0;
+  int lcd_cursor = 0;
+  char value;
+  bool flag = true;
+  while(flag)
+  {
+    int inp = getinput(rotary_minstep);
+  //Serial.println(inp);
+  switch (inp) {
+
+    case 0x32:
+      pass--;
+      if (pass<0)
+      pass = 25;
+      value = print_password(pass,lcd_cursor);
+      break;
+
+    case 0x34:
+      pass++;
+      if(pass>25)
+      pass = 0;
+      value = print_password(pass,lcd_cursor);
+      break;
+
+    case 0x35:
+      wifi_password[lcd_cursor] = value;
+      pass = 0;
+      lcd_cursor++;
+      break;
+
+    case 0x42:
+    flag =false;
+    break;
+
+  }
+}
+
+  String name = wifinames[wifi_cursor];
+
+}
+
+char print_password(int pass, int lcd_cursor)
+{
+  int value = 0;
+  if(pass<0)
+  pass = 25;
+  else if (pass >25)
+  pass = 0;
+  
+lcd.setCursor(lcd_cursor,1);
+value = 'a'+pass;
+lcd.print(value);
+return value;
+}
 
 // 0x31 - movement in rotary 1
 // 0x32 - ccw minstep rotary 1
@@ -745,7 +1082,8 @@ void login()
 // 0x44 - acw minstep rotary 2
 // 0x45 - butn pressd rotary 2
 // 0x00 - none
-int getinput(int rotary_step) {
+int getinput(int rotary_step) 
+{
   volatile unsigned char result = r.process();
   volatile unsigned char result2 = s.process();
 
@@ -815,15 +1153,7 @@ void showLetters(int printStart, int startLetter, char*  messagePadded)
   lcd.print(">");
 }
 
-void UserId()
-{
 
-}
-
-void password()
-{
-
-}
 
 void sendwire(char *str) {
   Serial.println();
