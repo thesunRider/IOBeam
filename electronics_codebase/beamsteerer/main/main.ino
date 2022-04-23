@@ -21,6 +21,7 @@
 #define PINB2 7
 #define PUSHB2 A3
 
+
 #define SLAVE_DRIVER 4
 
 
@@ -36,9 +37,11 @@ void reset_preset();
 int getinput(int rotary_step);
 void showLetters(int printStart, int startLetter, char*  messagePadded);
 
-const int rs = 11, en = 12, d4 = 5, d5 = 4, d6 = 3, d7 = 2, back = 9;
+const int rs = 11, en = 12, d4 = 5, d5 = 4, d6 = 3, d7 = 2, back = 9, left = 8;
 bool  initial = LOW;
 int scroll_letter = 0;
+int preset_number = 1;
+
 
 
 //initialize prog
@@ -48,13 +51,15 @@ Rotary r = Rotary(PINA, PINB, PUSHB);        // there is no must for using inter
 Rotary s = Rotary(PINA2, PINB2, PUSHB2);
 
 int columnsLCD = 16;
-char *MenuLine[] = {" Home", " Network Settings", " Hardware Settings", "Record"," Preset" ," About"};
-int MenuItems = 5;
+char *MenuLine[] = {" Home", " Network Settings", " Hardware Settings", "Record"," Preset" ," Display preset", " About"};
+int MenuItems = 7;
 int CursorLine = 0;
 
 char *networkmenu[] = {" Wifi Connect", " Wifi Power", " Register Device"};
 int networkitems = 3;
 int networkcursor=0;
+int angles[5][2];
+
 
 
 char id[5];
@@ -118,6 +123,7 @@ void setup ()
   digitalWrite (PUSHB2, HIGH);
 
   pinMode(back, INPUT);
+  pinMode(left, INPUT);
 
   lcd.begin (16, 2);
   lcd.clear (); // go home
@@ -178,7 +184,7 @@ void loop ()
     if (CursorLine > MenuItems - 1) {
       CursorLine = 0;                 // roll over to first item
     }
-   // print_menu();
+    print_menu();
   }
 
   //update every 400ms
@@ -241,6 +247,10 @@ void selection()
       break;
     
     case 5:
+    display_preset();
+    break;
+    
+    case 6:
     about();
       break;
 
@@ -249,19 +259,47 @@ void selection()
   } //end switch
 
   CursorLine = 0;     // reset to start position
+  print_menu();
 } //End selection
 
-void preset()
+void display_preset()
 {
- int cursor = 0;
   lcd.clear();
   lcd.setCursor(0,0);
-  lcd.print(">Presets : ");
-  lcd.setCursor(10,0);
+  for(int i = 0;i<preset_number;i++)
+  {
+    lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("a1 : " + String(angles[i][0]));
+      lcd.setCursor(0,1);
+      lcd.print("a2 : "+String(angles[i][1]));
+      while(true)
+      {
+        int inp = getinput(rotary_minstep);
+    if (inp == 0x35)
+    break;
+    else if (inp == 0x55)
+    {
+      print_menu ();
+    return ;
+    }
+    
+      }
+  }
+  print_menu();
+}
+void preset()
+{
+  bool initial_start = LOW;
+  int presetcursor = 0;
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print(">Presets : " + String(preset_number));
   lcd.setCursor(0,1);
   lcd.print(" Reset");
-  int value = 0;
- bool flag = true;
+ 
+  
+  bool flag = true;
   while (flag)
   {
     int inp = getinput(rotary_minstep);
@@ -269,57 +307,53 @@ void preset()
   {
 
     case 0x32:
-      value++;
-      if(value>5)
-      value = 1;
-      lcd.setCursor(0,1);
-      lcd.print(value);
+      preset_number++;
+      if(preset_number>5)
+      preset_number = 1;
+  lcd.setCursor(11,0);
+      lcd.print(preset_number);
       break;
 
     case 0x34:
-      value--;
-      if (value<1)
-      value = 5;
-      lcd.setCursor(0,1);
-      lcd.print(value);
+      preset_number--;
+      if (preset_number<1)
+      preset_number = 5;
+  lcd.setCursor(11,0);
+      lcd.print(preset_number);
       break;
 
     case 0x35:
-    if(value == 0)
-      get_angle(value);
-    else if (value == 1)
+    if(presetcursor == 0)
+      get_angle(preset_number);
+    else if (presetcursor == 1)
     reset_preset();
     flag = false;
       break;
-
-     case 0x42:
-     cursor--;
-     if(cursor<0)
-     cursor=1;
+  }
+  bool temp = digitalRead(back);
+  
+  if(temp != initial_start)
+  {
+   initial_start = temp;
+   if (temp == HIGH)
+   {
+  if (presetcursor == 0)
+     presetcursor =1;
+     else
+     presetcursor = 0;
      lcd.setCursor(0,0);
      lcd.print(" ");
      lcd.setCursor(0,1);
      lcd.print(" ");
-     lcd.setCursor(0,value);
+     lcd.setCursor(0,presetcursor);
      lcd.print(">");
-     break;
-
-     
-     case 0x44:
-     if(cursor>0)
-     cursor =0;
-     lcd.setCursor(0,0);
-     lcd.print(" ");
-     lcd.setCursor(0,1);
-     lcd.print(" ");
-     lcd.setCursor(0,value);
-     lcd.print(">");
-     break;
-
   }
   }
+  }
+  
 }
-int angles[5][2];
+
+
 void get_angle(int n)
 {
   
@@ -327,8 +361,11 @@ void get_angle(int n)
   {
     
     lcd.clear();
+    lcd.setCursor(0,1);
+    lcd.print(" a2 : ");
     lcd.setCursor(0,0);
     lcd.print(">a1 : ");
+   
     int value = 0;
     bool flag = true;
     while (flag)
@@ -367,12 +404,12 @@ void get_angle(int n)
   
   
       }
+      
     }
   lcd.setCursor(0,0);
-  lcd.print("a1 : ");
+  lcd.print(" ");
   lcd.setCursor(0,1);
-  lcd.print(">a2 : ");
-  
+  lcd.print(">");
   
      value = 0;
      flag = true;
@@ -386,9 +423,9 @@ void get_angle(int n)
         value+=10;
         if(value>360)
         value = 0;
-        lcd.setCursor(7,0);
+        lcd.setCursor(7,1);
         lcd.print("   ");
-        lcd.setCursor(7,0);
+        lcd.setCursor(7,1);
         lcd.print(value);
         
         break;
@@ -397,9 +434,9 @@ void get_angle(int n)
         value-=10;
         if (value<0)
         value = 360;
-        lcd.setCursor(7,0);
+        lcd.setCursor(7,1);
         lcd.print("   ");
-        lcd.setCursor(7,0);
+        lcd.setCursor(7,1);
         lcd.print(value);
         break;
   
@@ -415,12 +452,16 @@ void get_angle(int n)
     
   }
  }
+ print_menu();
 }
+
+
 void reset_preset()
 {
   for(int i = 0;i<5;i++)
   for(int j = 0;j<2;j++)
   angles[i][j] = 0;
+  print_menu();
 
 }
 
@@ -1128,6 +1169,7 @@ int getinput(int rotary_step)
   return 0;
 
 }
+
 
 bool buttonpressed(int buton_indx)
 {
