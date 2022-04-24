@@ -36,7 +36,6 @@ void get_angle(int n);
 void reset_preset();
 int getinput(int rotary_step);
 void showLetters(int printStart, int startLetter, char*  messagePadded);
-
 const int rs = 11, en = 12, d4 = 5, d5 = 4, d6 = 3, d7 = 2, back = 9, left = 8;
 bool  initial = LOW;
 int scroll_letter = 0;
@@ -273,6 +272,7 @@ void display_preset()
       lcd.print("a1 : " + String(angles[i][0]));
       lcd.setCursor(0,1);
       lcd.print("a2 : "+String(angles[i][1]));
+      
       while(true)
       {
         int inp = getinput(rotary_minstep);
@@ -288,13 +288,16 @@ void display_preset()
   }
   print_menu();
 }
+
+
 void preset()
 {
   bool initial_start = LOW;
   int presetcursor = 0;
   lcd.clear();
   lcd.setCursor(0,0);
-  lcd.print(">Presets : " + String(preset_number));
+  lcd.print(">Presets : " + String(preset_numb
+  er));
   lcd.setCursor(0,1);
   lcd.print(" Reset");
  
@@ -966,10 +969,13 @@ void network_settings()
   lcd.print(networkmenu[networkcursor]);
   get_wifi_names();
 }
+
 String wifinames[20];
 int wificount = 0;
 int wifi_cursor = 0;
 char wifi_password[20];
+
+
 void get_wifi_names()
 {
   Serial.println("ntwrk:32;100");
@@ -1035,6 +1041,8 @@ void wifi_name_screen()
   }
   
 }
+
+
 void display_wifi()
 {
 if(wifi_cursor >=wificount)
@@ -1053,6 +1061,8 @@ int temp = wifi_cursor;
   }
 
 }
+
+
 void wifi_selection()
 {
   lcd.clear();
