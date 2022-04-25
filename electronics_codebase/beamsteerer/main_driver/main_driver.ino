@@ -26,9 +26,13 @@
 
 #define IO0 12
 #define IO2 13
+#define chopper_output 8
 
+bool frequency_state_loop = false;
+int frequency_chopper = 1;
 int stepper1_potmean = 511;
 int stepper2_potmean = 512;
+int current_mills = 0;
 
 DStepper stepper1 = DStepper(1, motor1_B, motor1_P, motor1_Y, motor1_O, A0);
 DStepper stepper2 = DStepper(1 , motor2_B, motor2_P, motor2_Y, motor2_O, A1);
@@ -42,11 +46,16 @@ void setup() {
   Wire.onReceive(receiveEvent); // when recieving data
   Wire.onRequest(requestEvent);    // when sending data
 
-  pinMode(IO0,OUTPUT);
-  pinMode(IO2,OUTPUT);
+  pinMode(IO0, OUTPUT);
+  pinMode(IO2, OUTPUT);
+  pinMode(chopper_output, OUTPUT);
 
-  digitalWrite(IO0,LOW);
-  digitalWrite(IO2,HIGH);
+
+  digitalWrite(IO0, LOW);
+  digitalWrite(IO2, HIGH);
+  digitalWrite(chopper_output, LOW);
+
+
 
   //stepper1.homePot(stepper1_potmean, 2);
   //stepper2.homePot(stepper1_potmean, 2);
@@ -58,7 +67,14 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-
+  if (frequency_state_loop) {
+    if (frequency_chopper < 31) {
+      if (millis() - current_mills >  ((1 / frequency_chopper) * 1000)) {
+        digitalWrite(chopper_output, !digitalRead(chopper_output));
+        current_mills = millis();  //update current time
+      }
+    }
+  }
 }
 
 
@@ -93,27 +109,46 @@ void requestEvent() {
 
 //11 change angle of stepper 1
 //12 change angle of stepper 2
+//31 change frequency of chopper
+//32 turn off chopper
 void parsecommand(int command_in, float command_value) {
   switch (command_in) {
-    case 11:  
+    case 11:
       stepper1.goto_angle(command_value - 45 );
-      Serial.print("READ POT1:");
+      Serial.print(">READ POT1:");
       Serial.println(analogRead(motor_POT1));
       break;
 
 
     case 12:
       stepper2.goto_angle(command_value - 45);
-      Serial.print("READ POT2:");
+      Serial.print(">READ POT2:");
       Serial.println(analogRead(motor_POT2));
       break;
 
-   case 14: 
-      Serial.println("Stepper reset");
+    case 14:
+      Serial.println(">Stepper reset");
       stepper1.setcurrentPos(0);
       stepper2.setcurrentPos(0);
       break;
 
+    case 31:
+      Serial.println(">Change frequency stepper");
+      if (command_value > 31) {
+        frequency_state_loop = false;
+        noTone(chopper_output);
+        tone(chopper_output, (int) command_value);
+
+      } else {
+        frequency_state_loop = true;
+        frequency_chopper = (int) command_value;
+      }
+      break;
+
+    case 32:
+      noTone(chopper_output);
+      frequency_state_loop = false;
+      break;
 
   }
 }
