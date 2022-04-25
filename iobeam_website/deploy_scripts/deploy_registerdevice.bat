@@ -7,8 +7,8 @@ rem 1631 - Beam Chopper
 set dev_uid=%random%%random%
 set dev_type=%1
 set dev_version=1.2
-set usr_email=testdev@test.com
-set usr_pass=testdev@123
+set usr_email=alexshajan456@gmail.com
+set usr_pass=alex
 
 set host=https://projectiobeam.herokuapp.com
 

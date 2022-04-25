@@ -50,14 +50,16 @@ Rotary r = Rotary(PINA, PINB, PUSHB);        // there is no must for using inter
 Rotary s = Rotary(PINA2, PINB2, PUSHB2);
 
 int columnsLCD = 16;
-char *MenuLine[] = {" Home", " Network Settings", " Hardware Settings", "Record"," Preset" ," Display preset", " About"};
-int MenuItems = 7;
+char *MenuLine[] = {" Home", " Network Settings", " Hardware Settings", "Record"," Preset" ," Display preset", "Frequency", " About"};
+int MenuItems = 8;
 int CursorLine = 0;
 
 char *networkmenu[] = {" Wifi Connect", " Wifi Power", " Register Device"};
 int networkitems = 3;
 int networkcursor=0;
 int angles[5][2];
+
+int frequency;
 
 
 
@@ -246,10 +248,14 @@ void selection()
       break;
     
     case 5:
-    display_preset();
+      display_preset();
+      break;
+
+    case 6:
+    frequencyset();
     break;
     
-    case 6:
+    case 7:
     about();
       break;
 
@@ -296,8 +302,7 @@ void preset()
   int presetcursor = 0;
   lcd.clear();
   lcd.setCursor(0,0);
-  lcd.print(">Presets : " + String(preset_numb
-  er));
+  lcd.print(">Presets : " + String(preset_number));
   lcd.setCursor(0,1);
   lcd.print(" Reset");
  
@@ -926,7 +931,49 @@ void homepage()
   }
 }
 
+void frequencyset()
+{
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print(" Frequency");
+  lcd.setCursor(0,1);
+  lcd.print(frequency);
+  lcd.setCursor(6,1);
+  lcd.print("Hz");
+  boolean flag = true;
+  while(flag)
+  {
+    int inp = getinput(rotary_minstep);
+    switch(inp)
+    {
+      case 0x55:
+      Serial.println("Going Back");
+      print_menu();
+      return;
 
+      case 0x32:
+      frequency -= 1;
+      break;
+
+      case 0x34:
+      frequency +=1;
+
+      if(inp == 0x32 || inp == 0x34)
+      {
+        if(frequency>500)
+        {
+          frequency =500;
+        }
+
+        if(frequency<0)
+        {
+          frequency = 0;
+        }
+      }
+    }
+  }
+  
+}
 
 void about()
 {
