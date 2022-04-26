@@ -26,13 +26,19 @@
 
 #define IO0 12
 #define IO2 13
-#define chopper_output 8
+#define chopper_output 6
 
 bool frequency_state_loop = false;
 int frequency_chopper = 1;
 int stepper1_potmean = 511;
 int stepper2_potmean = 512;
-int current_mills = 0;
+
+unsigned long currentTime;  // could use micros also for more precise timing
+unsigned long previousTime;
+unsigned long elapsedTime;
+unsigned long halfPeriod;
+byte level = 0;
+bool called_interrupt = false;
 
 DStepper stepper1 = DStepper(1, motor1_B, motor1_P, motor1_Y, motor1_O, A0);
 DStepper stepper2 = DStepper(1 , motor2_B, motor2_P, motor2_Y, motor2_O, A1);
@@ -41,6 +47,7 @@ DStepper stepper2 = DStepper(1 , motor2_B, motor2_P, motor2_Y, motor2_O, A1);
 void setup() {
   // put your setup code here, to run once:
   Wire.begin(SLAVE_DRIVER);
+
 
   Serial.begin(9600);
   Wire.onReceive(receiveEvent); // when recieving data
@@ -66,16 +73,20 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  if (frequency_state_loop) {
-    if (frequency_chopper < 31) {
-      if (millis() - current_mills >  ((1 / frequency_chopper) * 1000)) {
-        digitalWrite(chopper_output, !digitalRead(chopper_output));
-        current_mills = millis();  //update current time
-      }
+
+  currentTime = millis(); // capture the current time
+  elapsedTime = currentTime - previousTime; // how much time elapsed since last pass thru loop
+  if (elapsedTime >= halfPeriod) { // time to change levels?
+    previousTime = previousTime + halfPeriod ;// set up for next level change
+    level = 1 - level; // will change 1,0,1,0,1,0 ...
+    if (frequency_state_loop && frequency_chopper < 32 ) {
+      digitalWrite (chopper_output, level);
     }
   }
+
+
 }
+
 
 
 //YYxYYYYYY
@@ -140,8 +151,12 @@ void parsecommand(int command_in, float command_value) {
         tone(chopper_output, (int) command_value);
 
       } else {
+
+        noTone(chopper_output);
         frequency_state_loop = true;
         frequency_chopper = (int) command_value;
+        halfPeriod = (int) 1000/frequency_chopper/2;
+        called_interrupt = true;
       }
       break;
 

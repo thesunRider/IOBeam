@@ -128,7 +128,7 @@ void setup ()
   lcd.clear (); // go home
   lcd.print ("IOBeam v2.3");
   lcd.setCursor(0, 1);
-  lcd.print("Beam Steeering");
+  lcd.print("Beam Controller");
 
 
   lcd.createChar(0, wifi_connected_icon);
@@ -186,7 +186,7 @@ void loop ()
     print_menu();
   }
 
-  //update every 400ms
+  //update every 700ms
   if (millis() - saved_millis  >= 700 ) {
     saved_millis = millis();
     if ((int)strlen(MenuLine[CursorLine]) - 16 > 0) {
@@ -573,7 +573,7 @@ void record()
           angle2 = 0;
 
 
-        stepper_move(angle2, 1);
+        send_command(angle2, 1);
 
       } else if (angle_select == 5) {
         lcd.setCursor(14, 0);
@@ -591,7 +591,7 @@ void record()
         if (angle1 > 90)
           angle1 = 0;
 
-        stepper_move(angle1, 0);
+        send_command(angle1, 0);
 
       }
 
@@ -710,7 +710,7 @@ void hardware_settings() {
       case 0x35:
         Serial.println("Stepper reset");
         if (cur_sor == 0)
-          stepper_move(0, 4); //set as home all stepper
+          send_command(0, 4); //set as home all stepper
         break;
     }
 
@@ -826,7 +826,7 @@ void homepage()
           angle2 = 0;
 
 
-        stepper_move(angle2, 1);
+        send_command(angle2, 1);
 
       } else if (angle_select == 0) {
         lcd.setCursor(0, 0);
@@ -840,7 +840,7 @@ void homepage()
         if (angle1 > 90)
           angle1 = 0;
 
-        stepper_move(angle1, 0);
+        send_command(angle1, 0);
 
       }
       if (connection_status ) {
@@ -937,7 +937,7 @@ void frequencyset()
   lcd.print(frequency_chopper);
   lcd.setCursor(10, 1);
   lcd.print("Hz");
-  
+
   while (true)
   {
     int inp = getinput(rotary_minstep);
@@ -946,7 +946,7 @@ void frequencyset()
       case 0x55:
         print_menu();
         frequency_chopper = 1;
-        
+        send_command(frequency_chopper,6);
         return;
 
       case 0x32:
@@ -976,6 +976,7 @@ void frequencyset()
       lcd.setCursor(0, 1);
       lcd.print(String(frequency_chopper) + "    ");
       Serial.println(frequency_chopper);
+      send_command(frequency_chopper,5);
 
     }
   }
@@ -1272,40 +1273,60 @@ void sendwire(char *str) {
   Wire.endTransmission();
 }
 
-
-void stepper_move(float stepper_angle, int stepper_index) {
+//0 - first stepper move
+//1 - second stepper move
+//3 - home steppers
+//4 - stepper reset
+//5 - set chopper freq
+//6 - stop chopper
+void send_command(float command_value, int command_index) {
 
   char sendstring[11];
 
-  switch (stepper_index) {
-    case 0x0:
-      dtostrf(stepper_angle, 10, 4, sendstring);
+  switch (command_index) {
+    case 0:
+      dtostrf(command_value, 10, 4, sendstring);
       sendstring[0] = '1';
       sendstring[1] = '1';
       sendstring[2] = 'x';
       sendwire(sendstring);
       break;
 
-    case 0x1:
-      dtostrf(stepper_angle, 10, 4, sendstring);
+    case 1:
+      dtostrf(command_value, 10, 4, sendstring);
       sendstring[0] = '1';
       sendstring[1] = '2';
       sendstring[2] = 'x';
       sendwire(sendstring);
       break;
 
-    case 0x3: //home the steppers
+    case 3: //home the steppers
 
       break;
 
-    case 0x4:
-      dtostrf(stepper_angle, 10, 4, sendstring);
+    case 4:
+      dtostrf(command_value, 10, 4, sendstring);
       sendstring[0] = '1';
       sendstring[1] = '4';
       sendstring[2] = 'x';
       sendwire(sendstring);
       break;
 
+
+    case 5:
+      dtostrf(command_value, 7, 0, sendstring);
+      sendstring[0] = '3';
+      sendstring[1] = '1';
+      sendstring[2] = 'x';
+      sendwire(sendstring);
+      break;
+
+   case 6:
+      sendstring[0] = '3';
+      sendstring[1] = '2';
+      sendstring[2] = 'x';
+      sendwire(sendstring);
+      break;
 
   }
 
